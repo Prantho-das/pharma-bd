@@ -63,6 +63,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/medicine-types', ProductManager::class)->name('products.medicine-types');
     Route::get('/manufacturers', ProductManager::class)->name('products.manufacturers');
     Route::get('/box-sizes', ProductManager::class)->name('products.box-sizes');
+    Route::get('/generics', ProductManager::class)->name('products.generics');
 
     // 5. Stock List & Transfers
     Route::get('/stocks', StockListManager::class)->name('stocks.index');

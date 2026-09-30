@@ -135,6 +135,8 @@ class ProductManager extends Component
             $this->tab = 'manufacturers';
         } elseif ($routeName === 'products.box-sizes') {
             $this->tab = 'box_sizes';
+        } elseif ($routeName === 'products.generics') {
+            $this->tab = 'generics';
         } elseif ($routeName === 'products.bulk-upload') {
             $this->tab = 'bulk';
         } else {
@@ -562,16 +564,24 @@ class ProductManager extends Component
     {
         $this->validate(['newMasterName' => 'required|string|max:255']);
 
-        if ($type === 'category') {
-            Category::create(['name' => $this->newMasterName, 'description' => $this->newMasterDescription]);
+        if ($type === 'generic') {
+            $gen = Generic::create(['name' => $this->newMasterName, 'indication' => $this->newMasterDescription]);
+            $this->genericId = $gen->id;
+        } elseif ($type === 'category') {
+            $cat = Category::create(['name' => $this->newMasterName, 'description' => $this->newMasterDescription]);
+            $this->categoryId = $cat->id;
         } elseif ($type === 'unit') {
-            Unit::create(['name' => $this->newMasterName, 'short_code' => $this->newMasterDescription ?: strtolower(substr($this->newMasterName, 0, 3)), 'conversion_factor' => 1]);
+            $u = Unit::create(['name' => $this->newMasterName, 'short_code' => $this->newMasterDescription ?: strtolower(substr($this->newMasterName, 0, 3)), 'conversion_factor' => 1]);
+            $this->baseUnitId = $u->id;
         } elseif ($type === 'type') {
-            MedicineType::create(['name' => $this->newMasterName, 'description' => $this->newMasterDescription]);
+            $t = MedicineType::create(['name' => $this->newMasterName, 'description' => $this->newMasterDescription]);
+            $this->medicineTypeId = $t->id;
         } elseif ($type === 'manufacturer') {
-            Manufacturer::create(['name' => $this->newMasterName, 'short_code' => $this->newMasterDescription]);
+            $m = Manufacturer::create(['name' => $this->newMasterName, 'short_code' => $this->newMasterDescription]);
+            $this->manufacturerId = $m->id;
         } elseif ($type === 'box_size') {
-            BoxSize::create(['name' => $this->newMasterName, 'total_quantity' => (int) $this->newMasterDescription ?: 100]);
+            $b = BoxSize::create(['name' => $this->newMasterName, 'total_quantity' => (int) $this->newMasterDescription ?: 100]);
+            $this->boxSizeId = $b->id;
         }
 
         $this->reset(['newMasterName', 'newMasterDescription']);

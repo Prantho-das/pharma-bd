@@ -206,14 +206,48 @@
                             </div>
 
                             <!-- Generic Molecule -->
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-700 mb-1">জেনেরিক / মূল উপাদান (Generic)</label>
+                            <div x-data="{ openQuickGeneric: false }">
+                                <div class="flex items-center justify-between mb-1">
+                                    <label class="block text-xs font-semibold text-slate-700">জেনেরিক / মূল উপাদান (Generic)</label>
+                                    <button 
+                                        type="button" 
+                                        @click="openQuickGeneric = true" 
+                                        class="text-[11px] font-bold text-sky-600 hover:text-sky-700 hover:underline flex items-center gap-0.5 cursor-pointer">
+                                        + নতুন জেনেরিক
+                                    </button>
+                                </div>
                                 <select wire:model.live="genericId" class="w-full text-xs rounded-lg border border-slate-300 py-2 px-3 text-slate-800 focus:border-sky-600 focus:ring-sky-500/15 bg-white">
                                     <option value="">-- সিলেক্ট করুন (বা খালি রাখুন) --</option>
                                     @foreach ($generics as $gen) 
                                         <option value="{{ $gen->id }}">{{ $gen->name }}</option> 
                                     @endforeach
                                 </select>
+
+                                <!-- Quick Generic Creation Modal -->
+                                <div x-show="openQuickGeneric" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4">
+                                    <div @click.away="openQuickGeneric = false" class="bg-white rounded-xl shadow-xl border border-slate-200 w-full max-w-md p-5 space-y-4">
+                                        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                                            <h4 class="font-bold text-sm text-slate-900">নতুন জেনেরিক যোগ করুন (Quick Generic)</h4>
+                                            <button type="button" @click="openQuickGeneric = false" class="text-slate-400 hover:text-slate-600 text-lg leading-none cursor-pointer">&times;</button>
+                                        </div>
+                                        <div class="space-y-3 text-left">
+                                            <div>
+                                                <label class="block text-xs font-bold text-slate-700 mb-1">জেনেরিকের নাম <span class="text-rose-500">*</span></label>
+                                                <input type="text" wire:model="newMasterName" placeholder="e.g. Paracetamol, Omeprazole, Montelukast" class="w-full text-xs rounded-lg border border-slate-300 py-2 px-3 focus:border-sky-600" />
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-bold text-slate-700 mb-1">থেরাপিউটিক ব্যবহার / Indication (ঐচ্ছিক)</label>
+                                                <input type="text" wire:model="newMasterDescription" placeholder="e.g. Fever, Pain relief, Gastric acidity" class="w-full text-xs rounded-lg border border-slate-300 py-2 px-3 focus:border-sky-600" />
+                                            </div>
+                                        </div>
+                                        <div class="flex justify-end gap-2 pt-2">
+                                            <button type="button" @click="openQuickGeneric = false" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer">বাতিল</button>
+                                            <button type="button" wire:click="addMaster('generic')" @click="openQuickGeneric = false" class="px-4 py-1.5 rounded-lg text-xs font-bold bg-sky-600 hover:bg-sky-700 text-white shadow-xs cursor-pointer">
+                                                সেভ ও সিলেক্ট করুন
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             <!-- Strength / Power -->
@@ -783,36 +817,36 @@
         </div>
     @endif
 
-    @if (in_array($tab, ['categories', 'units', 'types', 'manufacturers', 'box_sizes']))
+    @if (in_array($tab, ['generics', 'categories', 'units', 'types', 'manufacturers', 'box_sizes']))
         <!-- Master Tables -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div class="bg-white rounded-lg p-5 border border-slate-200 shadow-xs space-y-3.5">
                 <h3 class="font-bold text-sm text-slate-900 border-b border-slate-100 pb-2">Add New {{ ucfirst(rtrim($tab, 's')) }}</h3>
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1">Name</label>
-                    <input type="text" wire:model="newMasterName" placeholder="Enter name..." class="w-full" />
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Name <span class="text-rose-500">*</span></label>
+                    <input type="text" wire:model="newMasterName" placeholder="Enter {{ rtrim($tab, 's') }} name..." class="w-full text-xs rounded-lg border border-slate-300 py-2 px-3" />
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1">Description / Value</label>
-                    <input type="text" wire:model="newMasterDescription" placeholder="Description or code..." class="w-full" />
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">{{ $tab === 'generics' ? 'Indication / Usage' : 'Description / Code' }}</label>
+                    <input type="text" wire:model="newMasterDescription" placeholder="Enter details..." class="w-full text-xs rounded-lg border border-slate-300 py-2 px-3" />
                 </div>
-                <button type="button" wire:click="addMaster('{{ $tab === 'categories' ? 'category' : ($tab === 'units' ? 'unit' : ($tab === 'types' ? 'type' : ($tab === 'manufacturers' ? 'manufacturer' : 'box_size'))) }}')" class="w-full py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-lg text-xs transition shadow-xs cursor-pointer">
-                    Add Record
+                <button type="button" wire:click="addMaster('{{ $tab === 'generics' ? 'generic' : ($tab === 'categories' ? 'category' : ($tab === 'units' ? 'unit' : ($tab === 'types' ? 'type' : ($tab === 'manufacturers' ? 'manufacturer' : 'box_size')))) }}')" class="w-full py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-lg text-xs transition shadow-xs cursor-pointer">
+                    Add {{ ucfirst(rtrim($tab, 's')) }}
                 </button>
             </div>
 
             <div class="md:col-span-2 bg-white rounded-lg border border-slate-200 overflow-hidden shadow-xs">
-                <div class="p-3.5 border-b border-slate-200 bg-slate-50 font-bold text-slate-800 text-xs">
-                    Existing {{ ucfirst($tab) }}
+                <div class="p-3.5 border-b border-slate-200 bg-slate-50 font-bold text-slate-800 text-xs flex items-center justify-between">
+                    <span>Existing {{ ucfirst($tab) }} ({{ count($tab === 'generics' ? $generics : ($tab === 'categories' ? $categories : ($tab === 'units' ? $units : ($tab === 'types' ? $medicineTypes : ($tab === 'manufacturers' ? $manufacturers : $boxSizes))))) }})</span>
                 </div>
                 <div class="p-3 divide-y divide-slate-100 max-h-96 overflow-y-auto">
                     @php
-                        $list = $tab === 'categories' ? $categories : ($tab === 'units' ? $units : ($tab === 'types' ? $medicineTypes : ($tab === 'manufacturers' ? $manufacturers : $boxSizes)));
+                        $list = $tab === 'generics' ? $generics : ($tab === 'categories' ? $categories : ($tab === 'units' ? $units : ($tab === 'types' ? $medicineTypes : ($tab === 'manufacturers' ? $manufacturers : $boxSizes))));
                     @endphp
                     @foreach ($list as $item)
                         <div class="py-2.5 px-2 flex justify-between items-center text-xs hover:bg-slate-50/80 rounded transition">
                             <span class="font-semibold text-slate-800">{{ $item->name }}</span>
-                            <span class="text-[11px] text-slate-500 font-mono">{{ $item->short_code ?? $item->total_quantity ?? '' }}</span>
+                            <span class="text-[11px] text-slate-500 font-mono">{{ $item->indication ?? $item->short_code ?? $item->total_quantity ?? $item->description ?? '' }}</span>
                         </div>
                     @endforeach
                 </div>
