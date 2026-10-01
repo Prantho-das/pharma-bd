@@ -20,8 +20,11 @@ use App\Livewire\Inventory\StockTransferManager;
 use App\Livewire\Masters\MasterIndex;
 use App\Livewire\Pos\SaleReturnManager;
 use App\Livewire\Pos\Terminal;
+use App\Livewire\Products\MedicineDirectoryStudio;
 use App\Livewire\Products\ProductManager;
 use App\Livewire\Purchases\PurchaseCreateForm;
+use App\Livewire\Purchases\PurchaseOrderCreateForm;
+use App\Livewire\Purchases\PurchaseOrderManager;
 use App\Livewire\Purchases\PurchaseReturnManager;
 use App\Livewire\Purchases\PurchaseTable;
 use App\Livewire\Reports\LossProfitManager;
@@ -31,14 +34,24 @@ use App\Livewire\Roles\RolePermissionManager;
 use App\Livewire\Sales\SaleTable;
 use App\Livewire\Settings\ManageSettings;
 use App\Livewire\Suppliers\SupplierManager;
+use App\Livewire\Ai\PharmacyAiAssistant;
 use App\Livewire\Taxes\TaxManager;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/dashboard')->name('home');
 
+Route::get('/language/{lang}', function (string $lang) {
+    if (in_array($lang, ['en', 'bn'])) {
+        session(['locale' => $lang]);
+        app()->setLocale($lang);
+    }
+    return redirect()->back();
+})->name('language.switch');
+
 Route::middleware(['auth', 'verified'])->group(function () {
-    // 1. Dashboard
+    // 1. Dashboard & AI Assistant
     Route::get('/dashboard', Overview::class)->name('dashboard');
+    Route::get('/ai-assistant', PharmacyAiAssistant::class)->name('ai.assistant');
 
     // 2. Sales
     Route::get('/sales/create', Terminal::class)->name('sales.create');
@@ -47,7 +60,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/sale-returns', SaleReturnManager::class)->name('sales.returns');
     Route::get('/pos/returns', SaleReturnManager::class)->name('pos.returns');
 
-    // 3. Purchases
+    // 3. Purchases & Purchase Orders
+    Route::get('/purchase-orders', PurchaseOrderManager::class)->name('purchase-orders.index');
+    Route::get('/purchase-orders/create', PurchaseOrderCreateForm::class)->name('purchase-orders.create');
     Route::get('/purchases/create', PurchaseCreateForm::class)->name('purchases.create');
     Route::get('/purchases', PurchaseTable::class)->name('purchases.index');
     Route::get('/purchase-returns', PurchaseReturnManager::class)->name('purchases.returns');
@@ -55,6 +70,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // 4. Products
     Route::get('/products', ProductManager::class)->name('products.index');
     Route::get('/products/create', ProductManager::class)->name('products.create');
+    Route::get('/medicine-directory', MedicineDirectoryStudio::class)->name('products.directory');
     Route::get('/expired-products', ProductManager::class)->name('products.expired');
     Route::get('/barcodes', BarcodeGenerator::class)->name('products.barcodes');
     Route::get('/bulk-uploads', ProductManager::class)->name('products.bulk-upload');

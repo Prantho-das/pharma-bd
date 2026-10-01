@@ -112,6 +112,7 @@ class ReceiveGoodsNoteAction
             $purchase = Purchase::create([
                 'branch_id' => $payload['branch_id'] ?? null,
                 'purchase_no' => $purchaseNo,
+                'purchase_order_id' => $payload['purchase_order_id'] ?? null,
                 'supplier_id' => $payload['supplier_id'],
                 'supplier_invoice_no' => $payload['supplier_invoice_no'] ?? null,
                 'invoice_date' => $payload['invoice_date'] ?? now()->toDateString(),
@@ -126,6 +127,18 @@ class ReceiveGoodsNoteAction
                 'status' => 'RECEIVED',
                 'notes' => $payload['notes'] ?? null,
             ]);
+
+            // If converted from a Purchase Order, mark PO as RECEIVED
+            if (!empty($payload['purchase_order_id'])) {
+                $po = \App\Models\PurchaseOrder::find($payload['purchase_order_id']);
+                if ($po) {
+                    $totalReceived = collect($itemsData)->sum('quantity');
+                    $po->update([
+                        'status' => 'RECEIVED',
+                        'total_received_qty' => $po->total_received_qty + $totalReceived,
+                    ]);
+                }
+            }
 
             // Save items & create batches
             foreach ($itemsData as $data) {
@@ -144,18 +157,36 @@ class ReceiveGoodsNoteAction
                     'total_cost' => $data['total_cost'],
                 ]);
 
+                $batchExpiry = ! empty($data['expiry_date']) ? $data['expiry_date'] : '2099-12-31';
+                $batchNum = ! empty($data['batch_number']) ? trim($data['batch_number']) : 'DEFAULT';
+
                 // Create Batch in base pieces
                 Batch::create([
                     'branch_id' => $payload['branch_id'] ?? null,
                     'product_id' => $data['product']->id,
-                    'batch_number' => $data['batch_number'],
+                    'batch_number' => $batchNum,
                     'purchase_item_id' => $purchaseItem->id,
                     'base_unit_id' => $data['product']->base_unit_id,
                     'initial_stock' => $data['total_pieces'],
                     'current_stock' => $data['total_pieces'],
                     'purchase_rate' => $data['effective_base_rate'],
                     'mrp_rate' => $data['mrp_base_rate'],
-                    'expiry_date' => $data['expiry_date'],
+                    'expiry_date' => $batchExpiry,
+                ]);
+            }
+
+            // Record initial purchase payment if paid amount > 0
+            if ($paidAmount > 0) {
+                \App\Models\PurchasePayment::create([
+                    'purchase_id' => $purchase->id,
+                    'branch_id' => $payload['branch_id'] ?? null,
+                    'supplier_id' => $payload['supplier_id'],
+                    'payment_method' => $payload['payment_method'] ?? 'CASH',
+                    'amount' => $paidAmount,
+                    'payment_date' => $payload['invoice_date'] ?? now()->toDateString(),
+                    'transaction_reference' => $payload['transaction_reference'] ?? null,
+                    'notes' => 'Initial payment upon GRN receipt',
+                    'created_by' => auth()->id(),
                 ]);
             }
 

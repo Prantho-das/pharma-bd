@@ -17,6 +17,7 @@ class Product extends Model
         'is_narcotic' => 'boolean',
         'requires_prescription' => 'boolean',
         'is_cold_chain' => 'boolean',
+        'has_batch_tracking' => 'boolean',
         'tax_rate' => 'decimal:2',
     ];
 

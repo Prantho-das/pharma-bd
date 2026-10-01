@@ -3,7 +3,27 @@
     <head>
         @include('partials.head')
     </head>
-    <body class="min-h-screen bg-slate-50 text-slate-800 antialiased font-sans flex">
+    <body 
+        x-data="{ 
+            sidebarOpen: localStorage.getItem('sidebar_open') !== 'false',
+            toggleSidebar() { 
+                this.sidebarOpen = !this.sidebarOpen; 
+                localStorage.setItem('sidebar_open', this.sidebarOpen); 
+            },
+            closeSidebar() {
+                this.sidebarOpen = false;
+                localStorage.setItem('sidebar_open', 'false');
+            },
+            openSidebar() {
+                this.sidebarOpen = true;
+                localStorage.setItem('sidebar_open', 'true');
+            }
+        }" 
+        @toggle-sidebar.window="toggleSidebar()"
+        @close-sidebar.window="closeSidebar()"
+        @open-sidebar.window="openSidebar()"
+        class="min-h-screen bg-slate-50 text-slate-800 antialiased font-sans flex overflow-x-hidden"
+    >
         {{-- Sidebar --}}
         <aside 
             x-data="{
@@ -18,11 +38,13 @@
                     return items.some(item => item.toLowerCase().includes(q));
                 }
             }" 
-            class="w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 min-h-screen text-slate-700 shadow-xs z-30 select-none">
+            class="bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 min-h-screen text-slate-700 shadow-xs z-30 select-none transition-all duration-300 ease-in-out overflow-hidden"
+            :class="sidebarOpen ? 'w-64 opacity-100' : 'w-0 opacity-0 !border-r-0 !p-0 pointer-events-none'"
+        >
             
-            <div class="flex-1 flex flex-col min-h-0">
+            <div class="flex-1 flex flex-col min-h-0 w-64">
                 {{-- Logo & Brand --}}
-                <div class="h-16 px-5 border-b border-sky-700 flex items-center justify-between bg-gradient-to-r from-[#005a9e] via-[#0072bc] to-[#0099e6] text-white shadow-xs shrink-0">
+                <div class="h-16 px-4 border-b border-sky-700 flex items-center justify-between bg-gradient-to-r from-[#005a9e] via-[#0072bc] to-[#0099e6] text-white shadow-xs shrink-0">
                     <div class="flex items-center space-x-2.5">
                         <div class="w-9 h-9 rounded-lg bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center font-black text-sm text-white shadow-inner">
                             Rx
@@ -32,6 +54,15 @@
                             <div class="text-[11px] text-sky-100 font-bold tracking-wider uppercase">Pharmacy Enterprise</div>
                         </div>
                     </div>
+                    {{-- Sidebar Close Button --}}
+                    <button 
+                        @click="closeSidebar()" 
+                        type="button" 
+                        class="p-1.5 rounded-lg bg-white/10 hover:bg-white/25 text-white transition cursor-pointer shadow-2xs"
+                        title="Close sidebar"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" /></svg>
+                    </button>
                 </div>
 
                 {{-- Menu Quick Search Bar --}}
@@ -61,12 +92,23 @@
                 {{-- Navigation Links --}}
                 <nav class="flex-1 p-3 space-y-1 text-xs overflow-y-auto max-h-[calc(100vh-11rem)] divide-y divide-slate-100">
                     <div class="space-y-1 pb-2">
-                        {{-- 1. Dashboard --}}
+                        {{-- 1. Dashboard & AI Assistant --}}
                         @can('view_dashboard')
-                        <div x-show="matches('Dashboard')">
+                        <div x-show="matches('Dashboard ড্যাশবোর্ড Analytics Overview')">
                             <a href="{{ route('dashboard') }}" wire:navigate.hover class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-semibold transition {{ request()->routeIs('dashboard') ? 'bg-sky-600 text-white font-bold shadow-xs' : 'text-slate-700 hover:bg-sky-50 hover:text-sky-800' }}">
                                 <svg class="w-4 h-4 shrink-0 {{ request()->routeIs('dashboard') ? 'text-white' : 'text-sky-600' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-                                <span>Dashboard</span>
+                                <span>{{ __('Dashboard') }}</span>
+                            </a>
+                        </div>
+                        <div x-show="matches('AI Assistant এআই অ্যাসিস্ট্যান্ট Bot Analytics Insights Smart')">
+                            <a href="{{ route('ai.assistant') }}" wire:navigate.hover class="flex items-center justify-between px-3 py-2 rounded-lg text-sm font-semibold transition {{ request()->routeIs('ai.assistant') ? 'bg-sky-600 text-white font-bold shadow-xs' : 'text-slate-700 hover:bg-sky-50 hover:text-sky-800' }}">
+                                <div class="flex items-center gap-3">
+                                    <svg class="w-4 h-4 shrink-0 {{ request()->routeIs('ai.assistant') ? 'text-white' : 'text-sky-600' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                    </svg>
+                                    <span>{{ __('AI Assistant') }}</span>
+                                </div>
+                                <span class="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider {{ request()->routeIs('ai.assistant') ? 'bg-white/20 text-white' : 'bg-sky-100 text-sky-800' }}">AI</span>
                             </a>
                         </div>
                         @endcan
@@ -75,53 +117,57 @@
                         @canany(['view_sales', 'create_sales', 'return_sales'])
                         <div 
                             x-data="{ open: {{ request()->routeIs('sales.*', 'pos.*') ? 'true' : 'false' }} }" 
-                            x-show="hasMatch(['Sales', 'Sale New', 'Sale List', 'Sales Return', 'POS Terminal'])"
+                            x-show="hasMatch(['Sales', 'বিক্রয়', 'Sale New', 'Sale List', 'Sales Return', 'POS Terminal', 'পিওএস'])"
                             x-effect="if (searchQuery) open = true;"
                             class="space-y-0.5">
                             <button @click="open = !open" type="button" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-semibold transition hover:bg-sky-50 hover:text-sky-800 {{ request()->routeIs('sales.*', 'pos.*') ? 'text-sky-800 bg-sky-50 font-bold' : 'text-slate-700' }}">
                                 <div class="flex items-center gap-3">
                                     <svg class="w-4 h-4 shrink-0 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
-                                    <span>Sales</span>
+                                    <span>{{ __('Sales') }}</span>
                                 </div>
                                 <svg class="w-3.5 h-3.5 text-slate-400 transform transition-transform duration-200" :class="open ? 'rotate-90 text-sky-600' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                             </button>
                             <div x-show="open" x-collapse class="ml-4 pl-3 border-l-2 border-slate-200 py-1 space-y-0.5">
                                 @can('create_sales')
-                                    <a x-show="matches('Sales Sale New POS')" href="{{ route('sales.create') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('sales.create') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">Sale New (POS)</a>
+                                    <a x-show="matches('Sales Sale New POS বিক্রয়')" href="{{ route('sales.create') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('sales.create') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Sale New (POS)') }}</a>
                                 @endcan
                                 @can('view_sales')
-                                    <a x-show="matches('Sales Sale List Invoices')" href="{{ route('sales.index') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('sales.index') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">Sale List</a>
+                                    <a x-show="matches('Sales Sale List Invoices বিক্রয় তালিকা')" href="{{ route('sales.index') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('sales.index') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Sale List') }}</a>
                                 @endcan
                                 @can('return_sales')
-                                    <a x-show="matches('Sales Return Refund')" href="{{ route('sales.returns') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('sales.returns') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">Sales Return</a>
+                                    <a x-show="matches('Sales Return Refund ফেরত')" href="{{ route('sales.returns') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('sales.returns') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Sales Return') }}</a>
                                 @endcan
                             </div>
                         </div>
                         @endcanany
 
-                        {{-- 3. Purchases --}}
+                        {{-- 3. Purchases & Purchase Orders --}}
                         @canany(['view_purchases', 'create_purchases', 'return_purchases'])
                         <div 
-                            x-data="{ open: {{ request()->routeIs('purchases.*') ? 'true' : 'false' }} }" 
-                            x-show="hasMatch(['Purchases', 'Purchase New', 'Purchase List', 'Purchase Return', 'Supplier Bill'])"
+                            x-data="{ open: {{ request()->routeIs('purchases.*', 'purchase-orders.*') ? 'true' : 'false' }} }" 
+                            x-show="hasMatch(['Purchases', 'ক্রয়', 'Purchase Orders', 'PO', 'Purchase New', 'Purchase List', 'Purchase Return', 'Supplier Bill'])"
                             x-effect="if (searchQuery) open = true;"
                             class="space-y-0.5">
-                            <button @click="open = !open" type="button" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-semibold transition hover:bg-sky-50 hover:text-sky-800 {{ request()->routeIs('purchases.*') ? 'text-sky-800 bg-sky-50 font-bold' : 'text-slate-700' }}">
+                            <button @click="open = !open" type="button" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-semibold transition hover:bg-sky-50 hover:text-sky-800 {{ request()->routeIs('purchases.*', 'purchase-orders.*') ? 'text-sky-800 bg-sky-50 font-bold' : 'text-slate-700' }}">
                                 <div class="flex items-center gap-3">
                                     <svg class="w-4 h-4 shrink-0 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                                    <span>Purchases</span>
+                                    <span>{{ __('Purchases') }}</span>
                                 </div>
                                 <svg class="w-3.5 h-3.5 text-slate-400 transform transition-transform duration-200" :class="open ? 'rotate-90 text-sky-600' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                             </button>
                             <div x-show="open" x-collapse class="ml-4 pl-3 border-l-2 border-slate-200 py-1 space-y-0.5">
+                                @can('view_purchases')
+                                    <a x-show="matches('Purchase Orders PO পারচেজ অর্ডার')" href="{{ route('purchase-orders.index') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('purchase-orders.index') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Purchase Orders (PO)') }}</a>
+                                @endcan
                                 @can('create_purchases')
-                                    <a x-show="matches('Purchase New Add')" href="{{ route('purchases.create') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('purchases.create') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">Purchase New</a>
+                                    <a x-show="matches('Create PO নতুন পারচেজ অর্ডার')" href="{{ route('purchase-orders.create') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('purchase-orders.create') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Create PO') }}</a>
+                                    <a x-show="matches('Purchase New Add ক্রয় GRN')" href="{{ route('purchases.create') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('purchases.create') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('New Purchase (GRN)') }}</a>
                                 @endcan
                                 @can('view_purchases')
-                                    <a x-show="matches('Purchase List Invoices')" href="{{ route('purchases.index') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('purchases.index') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">Purchase List</a>
+                                    <a x-show="matches('Purchase List Invoices ক্রয় তালিকা')" href="{{ route('purchases.index') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('purchases.index') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Purchase List') }}</a>
                                 @endcan
                                 @can('return_purchases')
-                                    <a x-show="matches('Purchase Return')" href="{{ route('purchases.returns') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('purchases.returns') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">Purchase Return</a>
+                                    <a x-show="matches('Purchase Return ক্রয় ফেরত')" href="{{ route('purchases.returns') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('purchases.returns') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Purchase Return') }}</a>
                                 @endcan
                             </div>
                         </div>
@@ -131,46 +177,48 @@
                         @canany(['view_products', 'create_products', 'view_expired_products', 'print_barcodes', 'bulk_upload_products', 'manage_categories', 'manage_units', 'manage_medicine_types', 'manage_manufacturers', 'manage_box_sizes'])
                         <div 
                             x-data="{ open: {{ request()->routeIs('products.*') ? 'true' : 'false' }} }" 
-                            x-show="hasMatch(['Products', 'Medicines', 'All Product', 'Add Product', 'Expired Products', 'Print Labels', 'Barcodes', 'Bulk Upload', 'Category', 'Unit', 'Medicine Types', 'Manufacturers', 'Box Sizes'])"
+                            x-show="hasMatch(['Products', 'ওষুধ', 'Medicines', 'All Product', 'Add Product', 'Cloud Directory', 'Expired Products', 'Print Labels', 'Barcodes', 'Bulk Upload', 'Category', 'Unit', 'Medicine Types', 'Manufacturers', 'Box Sizes'])"
                             x-effect="if (searchQuery) open = true;"
                             class="space-y-0.5">
                             <button @click="open = !open" type="button" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-semibold transition hover:bg-sky-50 hover:text-sky-800 {{ request()->routeIs('products.*') ? 'text-sky-800 bg-sky-50 font-bold' : 'text-slate-700' }}">
                                 <div class="flex items-center gap-3">
                                     <svg class="w-4 h-4 shrink-0 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
-                                    <span>Products</span>
+                                    <span>{{ __('Products') }}</span>
                                 </div>
                                 <svg class="w-3.5 h-3.5 text-slate-400 transform transition-transform duration-200" :class="open ? 'rotate-90 text-sky-600' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                             </button>
                             <div x-show="open" x-collapse class="ml-4 pl-3 border-l-2 border-slate-200 py-1 space-y-0.5">
                                 @can('view_products')
-                                    <a x-show="matches('Products All Product Medicines')" href="{{ route('products.index') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('products.index') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">All Product</a>
+                                    <a x-show="matches('Products All Product Medicines সকল ওষুধ')" href="{{ route('products.index') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('products.index') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('All Product') }}</a>
                                 @endcan
                                 @can('create_products')
-                                    <a x-show="matches('Products Add Product Register')" href="{{ route('products.create') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('products.create') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">Add Product</a>
+                                    <a x-show="matches('Products Cloud Directory Medicine Scraper Search Medex ক্লাউড ডিরেক্টরি')" href="{{ route('products.directory') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-semibold text-emerald-700 hover:text-emerald-800 hover:bg-emerald-50 transition {{ request()->routeIs('products.directory') ? 'text-emerald-700 font-bold bg-emerald-50' : '' }}">🌐 {{ __('Cloud Directory') }}</a>
+                                    <a x-show="matches('Products Add Product Register নতুন ওষুধ')" href="{{ route('products.create') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('products.create') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Add Product') }}</a>
                                 @endcan
                                 @can('view_expired_products')
-                                    <a x-show="matches('Products Expired Batches')" href="{{ route('products.expired') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('products.expired') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">Expired Products</a>
+                                    <a x-show="matches('Products Expired Batches মেয়াদোত্তীর্ণ')" href="{{ route('products.expired') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('products.expired') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Expired Products') }}</a>
                                 @endcan
                                 @can('print_barcodes')
-                                    <a x-show="matches('Products Barcodes Print Labels')" href="{{ route('products.barcodes') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('products.barcodes') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">Print Labels</a>
+                                    <a x-show="matches('Products Barcodes Print Labels বারকোড')" href="{{ route('products.barcodes') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('products.barcodes') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Print Labels / Barcode') }}</a>
                                 @endcan
                                 @can('bulk_upload_products')
-                                    <a x-show="matches('Products Bulk Upload CSV Import')" href="{{ route('products.bulk-upload') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('products.bulk-upload') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">Bulk Upload</a>
+                                    <a x-show="matches('Products Bulk Upload CSV Import বাল্ক আপলোড')" href="{{ route('products.bulk-upload') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('products.bulk-upload') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Bulk Upload') }}</a>
                                 @endcan
                                 @can('manage_categories')
-                                    <a x-show="matches('Products Category Categories')" href="{{ route('products.categories') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('products.categories') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">Category</a>
+                                    <a x-show="matches('Products Generic Generics Molecules Formulation জেনেরিক')" href="{{ route('products.generics') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('products.generics') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">🧪 {{ __('Generics') }}</a>
+                                    <a x-show="matches('Products Category Categories ক্যাটাগরি')" href="{{ route('products.categories') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('products.categories') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Category') }}</a>
                                 @endcan
                                 @can('manage_units')
-                                    <a x-show="matches('Products Unit Units Strip Box Piece')" href="{{ route('products.units') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('products.units') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">Unit</a>
+                                    <a x-show="matches('Products Unit Units Strip Box Piece একক')" href="{{ route('products.units') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('products.units') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Unit') }}</a>
                                 @endcan
                                 @can('manage_medicine_types')
-                                    <a x-show="matches('Products Medicine Types')" href="{{ route('products.medicine-types') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('products.medicine-types') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">Medicine Types</a>
+                                    <a x-show="matches('Products Medicine Types ধরন')" href="{{ route('products.medicine-types') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('products.medicine-types') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Medicine Types') }}</a>
                                 @endcan
                                 @can('manage_manufacturers')
-                                    <a x-show="matches('Products Manufacturers Pharma')" href="{{ route('products.manufacturers') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('products.manufacturers') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">Manufacturers</a>
+                                    <a x-show="matches('Products Manufacturers Pharma কোম্পানি প্রস্তুতকারক')" href="{{ route('products.manufacturers') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('products.manufacturers') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Manufacturers') }}</a>
                                 @endcan
                                 @can('manage_box_sizes')
-                                    <a x-show="matches('Products Box Sizes')" href="{{ route('products.box-sizes') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('products.box-sizes') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">Box Sizes</a>
+                                    <a x-show="matches('Products Box Sizes বক্স')" href="{{ route('products.box-sizes') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('products.box-sizes') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Box Sizes') }}</a>
                                 @endcan
                             </div>
                         </div>
@@ -180,34 +228,34 @@
                         @canany(['view_stocks', 'manage_reorder', 'manage_expiry_damage', 'view_batches', 'manage_stock_adjustments', 'manage_stock_transfers'])
                         <div 
                             x-data="{ open: {{ request()->routeIs('stocks.*', 'inventory.*', 'batches.*') ? 'true' : 'false' }} }" 
-                            x-show="hasMatch(['Stocks', 'All Stock', 'Low Stock', 'Batches', 'Adjustments', 'Transfers', 'Reorder', 'Shortage', 'Expiry', 'Damage'])"
+                            x-show="hasMatch(['Stocks', 'মজুত', 'স্টক', 'All Stock', 'Low Stock', 'Batches', 'Adjustments', 'Transfers', 'Reorder', 'Shortage', 'Expiry', 'Damage'])"
                             x-effect="if (searchQuery) open = true;"
                             class="space-y-0.5">
                             <button @click="open = !open" type="button" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-semibold transition hover:bg-sky-50 hover:text-sky-800 {{ request()->routeIs('stocks.*', 'inventory.*', 'batches.*') ? 'text-sky-800 bg-sky-50 font-bold' : 'text-slate-700' }}">
                                 <div class="flex items-center gap-3">
                                     <svg class="w-4 h-4 shrink-0 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
-                                    <span>Stock List</span>
+                                    <span>{{ __('Stock List') }}</span>
                                 </div>
                                 <svg class="w-3.5 h-3.5 text-slate-400 transform transition-transform duration-200" :class="open ? 'rotate-90 text-sky-600' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                             </button>
                             <div x-show="open" x-collapse class="ml-4 pl-3 border-l-2 border-slate-200 py-1 space-y-0.5">
                                 @can('view_stocks')
-                                    <a x-show="matches('Stocks All Stock Inventory')" href="{{ route('stocks.index') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('stocks.index') && !request()->has('alert_qty') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">All Stock</a>
+                                    <a x-show="matches('Stocks All Stock Inventory মজুত')" href="{{ route('stocks.index') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('stocks.index') && !request()->has('alert_qty') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('All Stock') }}</a>
                                 @endcan
                                 @can('manage_reorder')
-                                    <a x-show="matches('Stocks Reorder Shortage Low Stock')" href="{{ route('inventory.reorder-shortage') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('inventory.reorder-shortage') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">⚡ Reorder & Shortage</a>
+                                    <a x-show="matches('Stocks Reorder Shortage Low Stock ঘাটতি')" href="{{ route('inventory.reorder-shortage') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('inventory.reorder-shortage') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">⚡ {{ __('Reorder Shortage') }}</a>
                                 @endcan
                                 @can('manage_expiry_damage')
-                                    <a x-show="matches('Stocks Near Expiry Damage Disposal')" href="{{ route('inventory.expiry-damage') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('inventory.expiry-damage') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">⏳ Expiry & Damage Claim</a>
+                                    <a x-show="matches('Stocks Near Expiry Damage Disposal ড্যামেজ')" href="{{ route('inventory.expiry-damage') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('inventory.expiry-damage') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">⏳ {{ __('Expiry & Damage') }}</a>
                                 @endcan
                                 @can('view_batches')
-                                    <a x-show="matches('Stocks Batches Expiry Table')" href="{{ route('batches.index') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('batches.index') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">Batch Tracking (FEFO)</a>
+                                    <a x-show="matches('Stocks Batches Expiry Table ব্যাচ')" href="{{ route('batches.index') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('batches.index') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Batch List') }}</a>
                                 @endcan
                                 @can('manage_stock_adjustments')
-                                    <a x-show="matches('Stocks Adjustments Damage Waste')" href="{{ route('inventory.stock-adjustments') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('inventory.stock-adjustments') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">Stock Adjustment</a>
+                                    <a x-show="matches('Stocks Adjustments Damage Waste অ্যাডজাস্টমেন্ট')" href="{{ route('inventory.stock-adjustments') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('inventory.stock-adjustments') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Stock Adjustment') }}</a>
                                 @endcan
                                 @can('manage_stock_transfers')
-                                    <a x-show="matches('Stocks Transfers Branch Store')" href="{{ route('inventory.transfers') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('inventory.transfers') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">Stock Transfer</a>
+                                    <a x-show="matches('Stocks Transfers Branch Store স্থানান্তর')" href="{{ route('inventory.transfers') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('inventory.transfers') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Stock Transfer') }}</a>
                                 @endcan
                             </div>
                         </div>
@@ -217,26 +265,26 @@
                         @canany(['view_customers', 'manage_customers', 'sms_refill_alerts'])
                         <div 
                             x-data="{ open: {{ request()->routeIs('customers.*') ? 'true' : 'false' }} }" 
-                            x-show="hasMatch(['Customers', 'All Customers', 'Add Customer', 'Bulk Upload', 'Patient Ledger', 'SMS', 'Refill'])"
+                            x-show="hasMatch(['Customers', 'গ্রাহক', 'কাস্টমার', 'All Customers', 'Add Customer', 'Bulk Upload', 'Patient Ledger', 'SMS', 'Refill'])"
                             x-effect="if (searchQuery) open = true;"
                             class="space-y-0.5">
                             <button @click="open = !open" type="button" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-semibold transition hover:bg-sky-50 hover:text-sky-800 {{ request()->routeIs('customers.*') ? 'text-sky-800 bg-sky-50 font-bold' : 'text-slate-700' }}">
                                 <div class="flex items-center gap-3">
                                     <svg class="w-4 h-4 shrink-0 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                                    <span>Customers</span>
+                                    <span>{{ __('Customers') }}</span>
                                 </div>
                                 <svg class="w-3.5 h-3.5 text-slate-400 transform transition-transform duration-200" :class="open ? 'rotate-90 text-sky-600' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                             </button>
                             <div x-show="open" x-collapse class="ml-4 pl-3 border-l-2 border-slate-200 py-1 space-y-0.5">
                                 @can('view_customers')
-                                    <a x-show="matches('Customers All Customers')" href="{{ route('customers.index') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('customers.index') && !request()->has('action') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">All Customers</a>
+                                    <a x-show="matches('Customers All Customers গ্রাহক তালিকা')" href="{{ route('customers.index') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('customers.index') && !request()->has('action') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Customer List') }}</a>
                                 @endcan
                                 @can('sms_refill_alerts')
-                                    <a x-show="matches('Customers SMS Refill Chronic Patient')" href="{{ route('customers.sms-refill') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('customers.sms-refill') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">📱 SMS & Refill Alerts</a>
+                                    <a x-show="matches('Customers SMS Refill Chronic Patient এসএমএস রিফিল')" href="{{ route('customers.sms-refill') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('customers.sms-refill') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">📱 {{ __('Emergency Refill Alert') }}</a>
                                 @endcan
                                 @can('manage_customers')
-                                    <a x-show="matches('Customers Add Customer Register')" href="{{ route('customers.index') }}?action=create" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->has('action') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">Add Customer</a>
-                                    <a x-show="matches('Customers Bulk Upload Import')" href="{{ route('customers.index') }}?type=Customer&bulk=1" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->has('bulk') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">Bulk Upload</a>
+                                    <a x-show="matches('Customers Add Customer Register নতুন গ্রাহক')" href="{{ route('customers.index') }}?action=create" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->has('action') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Add Product') }}</a>
+                                    <a x-show="matches('Customers Bulk Upload Import বাল্ক')" href="{{ route('customers.index') }}?type=Customer&bulk=1" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->has('bulk') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Bulk Upload') }}</a>
                                 @endcan
                             </div>
                         </div>
@@ -246,23 +294,23 @@
                         @canany(['view_suppliers', 'manage_suppliers'])
                         <div 
                             x-data="{ open: {{ request()->routeIs('suppliers.*') ? 'true' : 'false' }} }" 
-                            x-show="hasMatch(['Suppliers', 'All Suppliers', 'Add Supplier', 'Bulk Upload', 'Company Ledger'])"
+                            x-show="hasMatch(['Suppliers', 'সাপ্লায়ার', 'সরবরাহকারী', 'All Suppliers', 'Add Supplier', 'Bulk Upload', 'Company Ledger'])"
                             x-effect="if (searchQuery) open = true;"
                             class="space-y-0.5">
                             <button @click="open = !open" type="button" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-semibold transition hover:bg-sky-50 hover:text-sky-800 {{ request()->routeIs('suppliers.*') ? 'text-sky-800 bg-sky-50 font-bold' : 'text-slate-700' }}">
                                 <div class="flex items-center gap-3">
                                     <svg class="w-4 h-4 shrink-0 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
-                                    <span>Suppliers</span>
+                                    <span>{{ __('Suppliers') }}</span>
                                 </div>
                                 <svg class="w-3.5 h-3.5 text-slate-400 transform transition-transform duration-200" :class="open ? 'rotate-90 text-sky-600' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                             </button>
                             <div x-show="open" x-collapse class="ml-4 pl-3 border-l-2 border-slate-200 py-1 space-y-0.5">
                                 @can('view_suppliers')
-                                    <a x-show="matches('Suppliers All Suppliers')" href="{{ route('suppliers.index') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('suppliers.index') && !request()->has('action') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">All Suppliers</a>
+                                    <a x-show="matches('Suppliers All Suppliers সাপ্লায়ার তালিকা')" href="{{ route('suppliers.index') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('suppliers.index') && !request()->has('action') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Supplier List') }}</a>
                                 @endcan
                                 @can('manage_suppliers')
-                                    <a x-show="matches('Suppliers Add Supplier Register')" href="{{ route('suppliers.index') }}?action=create" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->has('action') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">Add Supplier</a>
-                                    <a x-show="matches('Suppliers Bulk Upload Import')" href="{{ route('suppliers.index') }}?type=Supplier&bulk=1" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->has('bulk') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">Bulk Upload</a>
+                                    <a x-show="matches('Suppliers Add Supplier Register নতুন সাপ্লায়ার')" href="{{ route('suppliers.index') }}?action=create" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->has('action') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Save') }}</a>
+                                    <a x-show="matches('Suppliers Bulk Upload Import বাল্ক')" href="{{ route('suppliers.index') }}?type=Supplier&bulk=1" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->has('bulk') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Bulk Upload') }}</a>
                                 @endcan
                             </div>
                         </div>
@@ -272,22 +320,22 @@
                         @canany(['view_incomes', 'manage_incomes', 'manage_income_categories'])
                         <div 
                             x-data="{ open: {{ request()->routeIs('incomes.*') ? 'true' : 'false' }} }" 
-                            x-show="hasMatch(['Incomes', 'Income', 'Income Category', 'Revenue', 'Earning'])"
+                            x-show="hasMatch(['Incomes', 'আয়', 'Income', 'Income Category', 'Revenue', 'Earning'])"
                             x-effect="if (searchQuery) open = true;"
                             class="space-y-0.5">
                             <button @click="open = !open" type="button" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-semibold transition hover:bg-sky-50 hover:text-sky-800 {{ request()->routeIs('incomes.*') ? 'text-sky-800 bg-sky-50 font-bold' : 'text-slate-700' }}">
                                 <div class="flex items-center gap-3">
                                     <svg class="w-4 h-4 shrink-0 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                    <span>Incomes</span>
+                                    <span>{{ __('Incomes') }}</span>
                                 </div>
                                 <svg class="w-3.5 h-3.5 text-slate-400 transform transition-transform duration-200" :class="open ? 'rotate-90 text-sky-600' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                             </button>
                             <div x-show="open" x-collapse class="ml-4 pl-3 border-l-2 border-slate-200 py-1 space-y-0.5">
                                 @can('view_incomes')
-                                    <a x-show="matches('Incomes Income Entry')" href="{{ route('incomes.index') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('incomes.index') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">Income List</a>
+                                    <a x-show="matches('Incomes Income Entry আয়')" href="{{ route('incomes.index') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('incomes.index') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Income List') }}</a>
                                 @endcan
                                 @can('manage_income_categories')
-                                    <a x-show="matches('Incomes Income Category')" href="{{ route('incomes.categories') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('incomes.categories') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">Income Category</a>
+                                    <a x-show="matches('Incomes Income Category আয় খাত')" href="{{ route('incomes.categories') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('incomes.categories') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Income Category') }}</a>
                                 @endcan
                             </div>
                         </div>
@@ -297,22 +345,22 @@
                         @canany(['view_expenses', 'manage_expenses', 'manage_expense_categories'])
                         <div 
                             x-data="{ open: {{ request()->routeIs('expenses.*') ? 'true' : 'false' }} }" 
-                            x-show="hasMatch(['Expenses', 'Expense', 'Expense Category', 'Cost', 'Bills', 'Petty Cash'])"
+                            x-show="hasMatch(['Expenses', 'খরচ', 'ব্যয়', 'Expense', 'Expense Category', 'Cost', 'Bills', 'Petty Cash'])"
                             x-effect="if (searchQuery) open = true;"
                             class="space-y-0.5">
                             <button @click="open = !open" type="button" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-semibold transition hover:bg-sky-50 hover:text-sky-800 {{ request()->routeIs('expenses.*') ? 'text-sky-800 bg-sky-50 font-bold' : 'text-slate-700' }}">
                                 <div class="flex items-center gap-3">
                                     <svg class="w-4 h-4 shrink-0 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                                    <span>Expenses</span>
+                                    <span>{{ __('Expenses') }}</span>
                                 </div>
                                 <svg class="w-3.5 h-3.5 text-slate-400 transform transition-transform duration-200" :class="open ? 'rotate-90 text-sky-600' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                             </button>
                             <div x-show="open" x-collapse class="ml-4 pl-3 border-l-2 border-slate-200 py-1 space-y-0.5">
                                 @can('view_expenses')
-                                    <a x-show="matches('Expenses Expense Entry List')" href="{{ route('expenses.index') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('expenses.index') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">Expense List</a>
+                                    <a x-show="matches('Expenses Expense Entry List ব্যয়')" href="{{ route('expenses.index') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('expenses.index') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Expense List') }}</a>
                                 @endcan
                                 @can('manage_expense_categories')
-                                    <a x-show="matches('Expenses Expense Category Heads')" href="{{ route('expenses.categories') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('expenses.categories') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">Expense Category</a>
+                                    <a x-show="matches('Expenses Expense Category Heads ব্যয় খাত')" href="{{ route('expenses.categories') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('expenses.categories') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Expense Category') }}</a>
                                 @endcan
                             </div>
                         </div>
@@ -320,10 +368,10 @@
 
                         {{-- 10. Tax --}}
                         @can('manage_taxes')
-                        <div x-show="matches('Tax VAT Rates Taxes')">
+                        <div x-show="matches('Tax VAT Rates Taxes ট্যাক্স ভ্যাট')">
                             <a href="{{ route('taxes.index') }}" wire:navigate.hover class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-semibold transition {{ request()->routeIs('taxes.*') ? 'bg-sky-50 text-sky-800 font-bold border-l-4 border-sky-600' : 'text-slate-700 hover:bg-sky-50 hover:text-sky-800' }}">
                                 <svg class="w-4 h-4 shrink-0 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l4-2 4 2 4-2 4 2z"></path></svg>
-                                <span>Tax & VAT</span>
+                                <span>{{ __('Tax & VAT') }}</span>
                             </a>
                         </div>
                         @endcan
@@ -332,23 +380,23 @@
                         @canany(['view_dues', 'manage_cash_registers'])
                         <div 
                             x-data="{ open: {{ request()->routeIs('dues.*', 'accounts.cash-registers') ? 'true' : 'false' }} }" 
-                            x-show="hasMatch(['Due List', 'Total Due', 'Cash Due', 'Walk-in Due', 'Customer Due', 'Cash Register', 'Shift', 'Counter'])"
+                            x-show="hasMatch(['Due List', 'বাকি', 'Total Due', 'Cash Due', 'Walk-in Due', 'Customer Due', 'Cash Register', 'Shift', 'Counter'])"
                             x-effect="if (searchQuery) open = true;"
                             class="space-y-0.5">
                             <button @click="open = !open" type="button" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-semibold transition hover:bg-sky-50 hover:text-sky-800 {{ request()->routeIs('dues.*', 'accounts.cash-registers') ? 'text-sky-800 bg-sky-50 font-bold' : 'text-slate-700' }}">
                                 <div class="flex items-center gap-3">
                                     <svg class="w-4 h-4 shrink-0 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
-                                    <span>Accounts & Dues</span>
+                                    <span>{{ __('Accounts & Dues') }}</span>
                                 </div>
                                 <svg class="w-3.5 h-3.5 text-slate-400 transform transition-transform duration-200" :class="open ? 'rotate-90 text-sky-600' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                             </button>
                             <div x-show="open" x-collapse class="ml-4 pl-3 border-l-2 border-slate-200 py-1 space-y-0.5">
                                 @can('view_dues')
-                                    <a x-show="matches('Due Total Due Customer')" href="{{ route('dues.index') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('dues.index') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">Total Due</a>
-                                    <a x-show="matches('Due Cash Due Walk-in Customer')" href="{{ route('dues.walk') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('dues.walk') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">Cash Due</a>
+                                    <a x-show="matches('Due Total Due Customer বাকি')" href="{{ route('dues.index') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('dues.index') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Customer Due / Ledger') }}</a>
+                                    <a x-show="matches('Due Cash Due Walk-in Customer বাকি')" href="{{ route('dues.walk') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('dues.walk') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Cash Register') }}</a>
                                 @endcan
                                 @can('manage_cash_registers')
-                                    <a x-show="matches('Shift Cash Register Counter Z-Report')" href="{{ route('accounts.cash-registers') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('accounts.cash-registers') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">💼 Shift & Cash Register</a>
+                                    <a x-show="matches('Shift Cash Register Counter Z-Report ক্যাশ')" href="{{ route('accounts.cash-registers') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('accounts.cash-registers') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">💼 {{ __('Cash Register') }}</a>
                                 @endcan
                             </div>
                         </div>
@@ -356,10 +404,10 @@
 
                         {{-- 13. Profit & Loss List --}}
                         @can('view_profit_loss')
-                        <div x-show="matches('Profit Loss LossProfit Revenue Accounts')">
+                        <div x-show="matches('Profit Loss LossProfit Revenue Accounts লাভ ক্ষতি')">
                             <a href="{{ route('loss-profits.index') }}" wire:navigate.hover class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-semibold transition {{ request()->routeIs('loss-profits.*') ? 'bg-sky-50 text-sky-800 font-bold border-l-4 border-sky-600' : 'text-slate-700 hover:bg-sky-50 hover:text-sky-800' }}">
                                 <svg class="w-4 h-4 shrink-0 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
-                                <span>Profit & Loss</span>
+                                <span>{{ __('Profit & Loss') }}</span>
                             </a>
                         </div>
                         @endcan
@@ -368,40 +416,40 @@
                         @canany(['view_hrm_departments', 'view_hrm_designations', 'view_hrm_shifts', 'view_hrm_employees', 'view_hrm_leaves', 'view_hrm_holidays', 'view_hrm_attendances', 'view_hrm_payrolls'])
                         <div 
                             x-data="{ open: {{ request()->routeIs('hrm.*') ? 'true' : 'false' }} }" 
-                            x-show="hasMatch(['HRM', 'Department', 'Designation', 'Shift', 'Employee', 'Leave Request', 'Holiday', 'Attendance', 'Payroll', 'Salary'])"
+                            x-show="hasMatch(['HRM', 'এইচআরএম', 'Department', 'Designation', 'Shift', 'Employee', 'Leave Request', 'Holiday', 'Attendance', 'Payroll', 'Salary'])"
                             x-effect="if (searchQuery) open = true;"
                             class="space-y-0.5">
                             <button @click="open = !open" type="button" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-semibold transition hover:bg-sky-50 hover:text-sky-800 {{ request()->routeIs('hrm.*') ? 'text-sky-800 bg-sky-50 font-bold' : 'text-slate-700' }}">
                                 <div class="flex items-center gap-3">
                                     <svg class="w-4 h-4 shrink-0 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                                    <span>HRM</span>
+                                    <span>{{ __('HRM') }}</span>
                                 </div>
                                 <svg class="w-3.5 h-3.5 text-slate-400 transform transition-transform duration-200" :class="open ? 'rotate-90 text-sky-600' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                             </button>
                             <div x-show="open" x-collapse class="ml-4 pl-3 border-l-2 border-slate-200 py-1 space-y-0.5">
                                 @can('view_hrm_departments')
-                                    <a x-show="matches('HRM Department')" href="{{ route('hrm.departments') }}?tab=departments" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('hrm.departments') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">Department</a>
+                                    <a x-show="matches('HRM Department বিভাগ')" href="{{ route('hrm.departments') }}?tab=departments" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('hrm.departments') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Departments') }}</a>
                                 @endcan
                                 @can('view_hrm_designations')
-                                    <a x-show="matches('HRM Designation Post')" href="{{ route('hrm.designations') }}?tab=designations" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('hrm.designations') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">Designation</a>
+                                    <a x-show="matches('HRM Designation Post পদবী')" href="{{ route('hrm.designations') }}?tab=designations" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('hrm.designations') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Designations') }}</a>
                                 @endcan
                                 @can('view_hrm_shifts')
-                                    <a x-show="matches('HRM Shift Roster')" href="{{ route('hrm.shifts') }}?tab=shifts" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('hrm.shifts') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">Shift</a>
+                                    <a x-show="matches('HRM Shift Roster শিফট')" href="{{ route('hrm.shifts') }}?tab=shifts" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('hrm.shifts') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Duty Shifts') }}</a>
                                 @endcan
                                 @can('view_hrm_employees')
-                                    <a x-show="matches('HRM Employee Staff User')" href="{{ route('hrm.employees') }}?tab=employees" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('hrm.employees') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">Employee</a>
+                                    <a x-show="matches('HRM Employee Staff User কর্মচারী')" href="{{ route('hrm.employees') }}?tab=employees" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('hrm.employees') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Employees') }}</a>
                                 @endcan
                                 @can('view_hrm_leaves')
-                                    <a x-show="matches('HRM Leave Request Vacation')" href="{{ route('hrm.leaves') }}?tab=leaves" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('hrm.leaves') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">Leave Request</a>
+                                    <a x-show="matches('HRM Leave Request Vacation ছুটি')" href="{{ route('hrm.leaves') }}?tab=leaves" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('hrm.leaves') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Leave Requests') }}</a>
                                 @endcan
                                 @can('view_hrm_holidays')
-                                    <a x-show="matches('HRM Holiday Calendar')" href="{{ route('hrm.holidays') }}?tab=holidays" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('hrm.holidays') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">Holiday</a>
+                                    <a x-show="matches('HRM Holiday Calendar বন্ধ')" href="{{ route('hrm.holidays') }}?tab=holidays" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('hrm.holidays') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Holidays') }}</a>
                                 @endcan
                                 @can('view_hrm_attendances')
-                                    <a x-show="matches('HRM Attendance Punch Clock')" href="{{ route('hrm.attendances') }}?tab=attendances" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('hrm.attendances') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">Attendance</a>
+                                    <a x-show="matches('HRM Attendance Punch Clock হাজিরা')" href="{{ route('hrm.attendances') }}?tab=attendances" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('hrm.attendances') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Daily Attendance') }}</a>
                                 @endcan
                                 @can('view_hrm_payrolls')
-                                    <a x-show="matches('HRM Payroll Salary Payslip')" href="{{ route('hrm.payrolls') }}?tab=payrolls" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('hrm.payrolls') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">Payroll</a>
+                                    <a x-show="matches('HRM Payroll Salary Payslip বেতন')" href="{{ route('hrm.payrolls') }}?tab=payrolls" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('hrm.payrolls') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Payrolls / Salary') }}</a>
                                 @endcan
                             </div>
                         </div>
@@ -411,52 +459,52 @@
                         @canany(['view_sales_reports', 'view_purchase_reports', 'view_income_reports', 'view_expense_reports', 'view_stock_reports', 'view_customer_ledger', 'view_supplier_ledger', 'view_due_reports', 'view_loss_profit_reports', 'view_transaction_reports', 'view_expired_reports'])
                         <div 
                             x-data="{ open: {{ request()->routeIs('reports.*') ? 'true' : 'false' }} }" 
-                            x-show="hasMatch(['Reports', 'Sale Report', 'Sale Return', 'Purchase Report', 'Purchase Return', 'Income Report', 'Expense Report', 'Current Stock', 'Customer Ledger', 'Supplier Ledger', 'Customer Due', 'Supplier Due', 'Loss Profit', 'Transaction', 'Expired Product'])"
+                            x-show="hasMatch(['Reports', 'রিপোর্ট', 'Sale Report', 'Sale Return', 'Purchase Report', 'Purchase Return', 'Income Report', 'Expense Report', 'Current Stock', 'Customer Ledger', 'Supplier Ledger', 'Customer Due', 'Supplier Due', 'Loss Profit', 'Transaction', 'Expired Product'])"
                             x-effect="if (searchQuery) open = true;"
                             class="space-y-0.5">
                             <button @click="open = !open" type="button" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-semibold transition hover:bg-sky-50 hover:text-sky-800 {{ request()->routeIs('reports.*') ? 'text-sky-800 bg-sky-50 font-bold' : 'text-slate-700' }}">
                                 <div class="flex items-center gap-3">
                                     <svg class="w-4 h-4 shrink-0 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                                    <span>Reports</span>
+                                    <span>{{ __('Reports') }}</span>
                                 </div>
                                 <svg class="w-3.5 h-3.5 text-slate-400 transform transition-transform duration-200" :class="open ? 'rotate-90 text-sky-600' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                             </button>
                             <div x-show="open" x-collapse class="ml-4 pl-3 border-l-2 border-slate-200 py-1 space-y-0.5">
                                 @can('view_sales_reports')
-                                    <a x-show="matches('Reports Sale Sales Invoices')" href="{{ url('/reports/sales') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->is('reports/sales') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">Sale Report</a>
-                                    <a x-show="matches('Reports Sale Return Refund')" href="{{ url('/reports/sale-returns') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->is('reports/sale-returns') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">Sale Return</a>
+                                    <a x-show="matches('Reports Sale Sales Invoices বিক্রয় রিপোর্ট')" href="{{ url('/reports/sales') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->is('reports/sales') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Daily Sales Report') }}</a>
+                                    <a x-show="matches('Reports Sale Return Refund বিক্রয় ফেরত')" href="{{ url('/reports/sale-returns') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->is('reports/sale-returns') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Sales Return') }}</a>
                                 @endcan
                                 @can('view_purchase_reports')
-                                    <a x-show="matches('Reports Purchase Invoices')" href="{{ url('/reports/purchases') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->is('reports/purchases') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">Purchase Report</a>
-                                    <a x-show="matches('Reports Purchase Return')" href="{{ url('/reports/purchase-returns') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->is('reports/purchase-returns') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">Purchase Return</a>
+                                    <a x-show="matches('Reports Purchase Invoices ক্রয় রিপোর্ট')" href="{{ url('/reports/purchases') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->is('reports/purchases') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Purchase Report') }}</a>
+                                    <a x-show="matches('Reports Purchase Return ক্রয় ফেরত')" href="{{ url('/reports/purchase-returns') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->is('reports/purchase-returns') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Purchase Return') }}</a>
                                 @endcan
                                 @can('view_income_reports')
-                                    <a x-show="matches('Reports Income All Income')" href="{{ url('/reports/incomes') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->is('reports/incomes') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">All Income</a>
+                                    <a x-show="matches('Reports Income All Income আয় রিপোর্ট')" href="{{ url('/reports/incomes') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->is('reports/incomes') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Income List') }}</a>
                                 @endcan
                                 @can('view_expense_reports')
-                                    <a x-show="matches('Reports Expense All Expense')" href="{{ url('/reports/expenses') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->is('reports/expenses') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">All Expense</a>
+                                    <a x-show="matches('Reports Expense All Expense খরচ রিপোর্ট')" href="{{ url('/reports/expenses') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->is('reports/expenses') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Expense List') }}</a>
                                 @endcan
                                 @can('view_stock_reports')
-                                    <a x-show="matches('Reports Stock Current Inventory')" href="{{ url('/reports/stocks') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->is('reports/stocks') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">Current Stock</a>
+                                    <a x-show="matches('Reports Stock Current Inventory স্টক রিপোর্ট')" href="{{ url('/reports/stocks') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->is('reports/stocks') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Inventory & Stock Report') }}</a>
                                 @endcan
                                 @can('view_customer_ledger')
-                                    <a x-show="matches('Reports Customer Ledger Statement')" href="{{ url('/reports/customer-ledger') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->is('reports/customer-ledger') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">Customer Ledger</a>
+                                    <a x-show="matches('Reports Customer Ledger Statement কাস্টমার লেজার')" href="{{ url('/reports/customer-ledger') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->is('reports/customer-ledger') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Customer Due / Ledger') }}</a>
                                 @endcan
                                 @can('view_supplier_ledger')
-                                    <a x-show="matches('Reports Supplier Ledger Statement')" href="{{ url('/reports/supplier-ledger') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->is('reports/supplier-ledger') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">Supplier Ledger</a>
+                                    <a x-show="matches('Reports Supplier Ledger Statement সাপ্লায়ার লেজার')" href="{{ url('/reports/supplier-ledger') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->is('reports/supplier-ledger') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Supplier Due / Ledger') }}</a>
                                 @endcan
                                 @can('view_due_reports')
-                                    <a x-show="matches('Reports Customer Due')" href="{{ url('/reports/customer-due') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->is('reports/customer-due') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">Customer Due</a>
-                                    <a x-show="matches('Reports Supplier Due')" href="{{ url('/reports/supplier-due') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->is('reports/supplier-due') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">Supplier Due</a>
+                                    <a x-show="matches('Reports Customer Due বাকি রিপোর্ট')" href="{{ url('/reports/customer-due') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->is('reports/customer-due') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Customer Due / Ledger') }}</a>
+                                    <a x-show="matches('Reports Supplier Due সাপ্লায়ার বাকি')" href="{{ url('/reports/supplier-due') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->is('reports/supplier-due') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Supplier Due / Ledger') }}</a>
                                 @endcan
                                 @can('view_loss_profit_reports')
-                                    <a x-show="matches('Reports Loss Profit Net Revenue')" href="{{ url('/reports/loss-profit') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->is('reports/loss-profit') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">Loss & Profit</a>
+                                    <a x-show="matches('Reports Loss Profit Net Revenue লাভ ক্ষতি')" href="{{ url('/reports/loss-profit') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->is('reports/loss-profit') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Profit & Loss Statement') }}</a>
                                 @endcan
                                 @can('view_transaction_reports')
-                                    <a x-show="matches('Reports Transaction Cash Flow')" href="{{ url('/reports/transactions') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->is('reports/transactions') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">Transaction</a>
+                                    <a x-show="matches('Reports Transaction Cash Flow লেনদেন')" href="{{ url('/reports/transactions') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->is('reports/transactions') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Cash Register') }}</a>
                                 @endcan
                                 @can('view_expired_reports')
-                                    <a x-show="matches('Reports Expired Product Medicine')" href="{{ url('/reports/expired') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->is('reports/expired') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">Expired Product</a>
+                                    <a x-show="matches('Reports Expired Product Medicine মেয়াদোত্তীর্ণ')" href="{{ url('/reports/expired') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->is('reports/expired') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('Expiry Alert Report') }}</a>
                                 @endcan
                             </div>
                         </div>
@@ -466,22 +514,22 @@
                         @canany(['manage_settings', 'manage_roles_permissions'])
                         <div 
                             x-data="{ open: {{ request()->routeIs('settings.*', 'roles.*') ? 'true' : 'false' }} }" 
-                            x-show="hasMatch(['Settings', 'Configuration', 'Pharmacy Setup', 'Roles', 'Permissions', 'Security'])"
+                            x-show="hasMatch(['Settings', 'সেটিংস', 'Configuration', 'Pharmacy Setup', 'Roles', 'Permissions', 'Security'])"
                             x-effect="if (searchQuery) open = true;"
                             class="space-y-0.5">
                             <button @click="open = !open" type="button" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-semibold transition hover:bg-sky-50 hover:text-sky-800 {{ request()->routeIs('settings.*', 'roles.*') ? 'text-sky-800 bg-sky-50 font-bold' : 'text-slate-700' }}">
                                 <div class="flex items-center gap-3">
                                     <svg class="w-4 h-4 shrink-0 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                                    <span>Settings & Access</span>
+                                    <span>{{ __('Settings & Access') }}</span>
                                 </div>
                                 <svg class="w-3.5 h-3.5 text-slate-400 transform transition-transform duration-200" :class="open ? 'rotate-90 text-sky-600' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                             </button>
                             <div x-show="open" x-collapse class="ml-4 pl-3 border-l-2 border-slate-200 py-1 space-y-0.5">
                                 @can('manage_settings')
-                                    <a x-show="matches('Settings Configuration Pharmacy Setup')" href="{{ route('settings.manage') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('settings.manage') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">General Settings</a>
+                                    <a x-show="matches('Settings Configuration Pharmacy Setup সাধারণ সেটিংস')" href="{{ route('settings.manage') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('settings.manage') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">{{ __('General Settings') }}</a>
                                 @endcan
                                 @can('manage_roles_permissions')
-                                    <a x-show="matches('Roles Permissions Matrix RBAC Access Security')" href="{{ route('roles.index') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('roles.index') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">🛡️ Roles & Permissions</a>
+                                    <a x-show="matches('Roles Permissions Matrix RBAC Access Security রোল পারমিশন')" href="{{ route('roles.index') }}" wire:navigate.hover class="block px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-sky-700 hover:bg-slate-100 transition {{ request()->routeIs('roles.index') ? 'text-sky-700 font-bold bg-sky-50' : '' }}">🛡️ {{ __('Roles & Permissions') }}</a>
                                 @endcan
                             </div>
                         </div>
@@ -491,7 +539,7 @@
             </div>
 
             {{-- User Profile Footer --}}
-            <div class="p-3 border-t border-slate-200 bg-slate-50 flex items-center justify-between shrink-0">
+            <div class="p-3 border-t border-slate-200 bg-slate-50 flex items-center justify-between shrink-0 w-64">
                 <div class="flex items-center space-x-2.5">
                     <div class="w-8 h-8 rounded-full bg-sky-700 text-white font-bold flex items-center justify-center text-xs shadow-xs">
                         {{ auth()->user()?->initials() ?? 'EP' }}
@@ -511,10 +559,10 @@
         </aside>
 
         {{-- Main View Container --}}
-        <main class="flex-1 min-h-screen overflow-y-auto bg-slate-50 flex flex-col">
+        <main class="flex-1 min-w-0 w-full min-h-screen overflow-y-auto bg-slate-50 flex flex-col">
             <livewire:navbar.top-navbar />
             @include('partials.module-tabs')
-            <div class="flex-1">
+            <div class="flex-1 min-w-0 w-full">
                 {{ $slot }}
             </div>
         </main>

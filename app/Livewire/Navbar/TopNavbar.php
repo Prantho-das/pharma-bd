@@ -96,22 +96,19 @@ class TopNavbar extends Component
 
     public function render()
     {
-        $now = Carbon::now();
-        $in30Days = Carbon::now()->addDays(30);
+        $now = Carbon::now()->toDateString();
+        $in30Days = Carbon::now()->addDays(30)->toDateString();
 
-        // Low stock count
+        // 1. Fast indexed subquery count for low stock (1 single SQL query)
         $lowStockCount = Product::where('status', 'active')
-            ->get()
-            ->filter(fn ($p) => $p->totalStockPieces() <= ($p->min_stock_alert ?? 10))
+            ->whereRaw('(SELECT COALESCE(SUM(current_stock), 0) FROM batches WHERE batches.product_id = products.id AND expiry_date > ?) <= products.min_stock_alert', [$now])
             ->count();
 
-        // Near-expiry batches
+        // 2. Fast indexed queries for expiry
         $nearExpiryCount = Batch::where('current_stock', '>', 0)
-            ->where('expiry_date', '>=', $now)
-            ->where('expiry_date', '<=', $in30Days)
+            ->whereBetween('expiry_date', [$now, $in30Days])
             ->count();
 
-        // Expired batches
         $expiredCount = Batch::where('current_stock', '>', 0)
             ->where('expiry_date', '<', $now)
             ->count();
@@ -119,6 +116,7 @@ class TopNavbar extends Component
         // Active shift
         $activeShift = CashRegister::where('user_id', Auth::id())
             ->where('status', 'OPEN')
+            ->latest('id')
             ->first();
 
         // Total notifications

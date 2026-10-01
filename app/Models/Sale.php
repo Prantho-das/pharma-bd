@@ -50,6 +50,11 @@ class Sale extends Model
         return $this->hasMany(SaleItem::class);
     }
 
+    public function saleItems(): HasMany
+    {
+        return $this->hasMany(SaleItem::class);
+    }
+
     public function payments(): HasMany
     {
         return $this->hasMany(SalePayment::class);

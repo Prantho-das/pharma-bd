@@ -22,9 +22,14 @@ class BatchAllocationService
 
         $query = Batch::query()
             ->where('product_id', $product->id)
-            ->where('current_stock', '>', 0)
-            ->where('expiry_date', '>', now()->toDateString())
-            ->orderBy('expiry_date', 'asc')
+            ->where('current_stock', '>', 0);
+
+        // Only enforce expiry date validity if product tracks batch/expiry
+        if ($product->has_batch_tracking ?? true) {
+            $query->where('expiry_date', '>', now()->toDateString());
+        }
+
+        $query->orderBy('expiry_date', 'asc')
             ->orderBy('created_at', 'asc');
 
         if ($branchId) {

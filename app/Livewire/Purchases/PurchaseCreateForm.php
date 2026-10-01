@@ -28,6 +28,10 @@ class PurchaseCreateForm extends Component
 
     public float $paid_amount = 0.00;
 
+    public string $payment_method = 'CASH';
+
+    public string $transaction_reference = '';
+
     public string $notes = '';
 
     // Quick Supplier Modal
@@ -40,24 +44,67 @@ class PurchaseCreateForm extends Component
     public string $newSupplierPhone = '';
 
     // Purchase Items Array
-    // item = [product_id, product_name, unit_id, quantity, bonus_quantity, batch_number, expiry_date, purchase_price_per_unit, mrp_per_unit, total_cost, effective_base_cost]
     public array $items = [];
 
     public ?string $successMessage = null;
 
     public ?string $errorMessage = null;
 
+    public ?int $purchase_order_id = null;
+    public ?\App\Models\PurchaseOrder $sourcePo = null;
+
     public function mount()
     {
         $this->invoice_date = now()->toDateString();
         $this->delivery_date = now()->toDateString();
-        $this->addItemRow();
+
+        $fromPoId = request()->query('from_po');
+        if ($fromPoId) {
+            $po = \App\Models\PurchaseOrder::with(['items.product.productUnits.unit', 'items.product.baseUnit'])->find($fromPoId);
+            if ($po) {
+                $this->purchase_order_id = $po->id;
+                $this->sourcePo = $po;
+                $this->supplier_id = $po->supplier_id;
+                $this->discount = (float) $po->discount;
+                $this->tax_amount = (float) $po->tax_amount;
+                $this->notes = "Received against PO #{$po->po_number}. " . ($po->notes ?? '');
+
+                $this->items = [];
+                foreach ($po->items as $poItem) {
+                    $prod = $poItem->product;
+                    $hasBatchTracking = (bool) ($prod?->has_batch_tracking ?? true);
+                    $unitPrice = (float) $poItem->unit_price;
+                    $mrpPrice = (float) ($poItem->mrp_per_unit > 0 ? $poItem->mrp_per_unit : ($prod?->selling_price ?? 0));
+                    $qty = (int) $poItem->quantity_ordered;
+
+                    $this->items[] = [
+                        'product_id' => $poItem->product_id,
+                        'product_name' => $prod?->name ?? '',
+                        'has_batch_tracking' => $hasBatchTracking,
+                        'unit_id' => $poItem->unit_id ?? $prod?->base_unit_id,
+                        'quantity' => $qty,
+                        'bonus_quantity' => 0,
+                        'batch_number' => $hasBatchTracking ? 'B-' . strtoupper(substr(md5(uniqid()), 0, 5)) : 'DEFAULT',
+                        'expiry_date' => $hasBatchTracking ? now()->addYears(2)->format('Y-m-d') : '2099-12-31',
+                        'purchase_price_per_unit' => $unitPrice,
+                        'mrp_per_unit' => $mrpPrice,
+                        'total_cost' => round($qty * $unitPrice, 2),
+                    ];
+                }
+            }
+        }
+
+        if (empty($this->items)) {
+            $this->addItemRow();
+        }
     }
 
     public function addItemRow()
     {
         $this->items[] = [
             'product_id' => null,
+            'product_name' => '',
+            'has_batch_tracking' => true,
             'unit_id' => null,
             'quantity' => 1,
             'bonus_quantity' => 0,
@@ -86,7 +133,21 @@ class PurchaseCreateForm extends Component
         }
 
         $this->items[$index]['product_id'] = $product->id;
+        $this->items[$index]['product_name'] = $product->name;
         $this->items[$index]['unit_id'] = $product->base_unit_id;
+        $this->items[$index]['has_batch_tracking'] = (bool) ($product->has_batch_tracking ?? true);
+
+        if (! $this->items[$index]['has_batch_tracking']) {
+            $this->items[$index]['batch_number'] = 'DEFAULT';
+            $this->items[$index]['expiry_date'] = '2099-12-31';
+        } else {
+            if ($this->items[$index]['batch_number'] === 'DEFAULT' || empty($this->items[$index]['batch_number'])) {
+                $this->items[$index]['batch_number'] = 'B-'.strtoupper(substr(md5(uniqid()), 0, 5));
+            }
+            if ($this->items[$index]['expiry_date'] === '2099-12-31' || empty($this->items[$index]['expiry_date'])) {
+                $this->items[$index]['expiry_date'] = now()->addYears(2)->format('Y-m-d');
+            }
+        }
 
         $defaultPurchaseUnit = $product->productUnits->where('is_default_purchase', true)->first()
             ?? $product->productUnits->first();
@@ -154,15 +215,36 @@ class PurchaseCreateForm extends Component
             'supplier_id' => 'required|exists:suppliers,id',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
-            'items.*.batch_number' => 'required|string',
-            'items.*.expiry_date' => 'required|date|after:today',
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.purchase_price_per_unit' => 'required|numeric|min:0',
         ]);
 
+        // Validate batch and expiry for batch-tracked items
+        foreach ($this->items as $idx => &$item) {
+            $isBatchTracked = $item['has_batch_tracking'] ?? true;
+            if ($isBatchTracked) {
+                if (empty($item['batch_number'])) {
+                    $this->errorMessage = 'অনুগ্রহ করে সকল ব্যাচ-ট্র্যাকড ওষুধের জন্য ব্যাচ নম্বর লিখুন।';
+                    return;
+                }
+                if (empty($item['expiry_date'])) {
+                    $this->errorMessage = 'অনুগ্রহ করে সকল ব্যাচ-ট্র্যাকড ওষুধের জন্য মেয়াদের তারিখ দিন।';
+                    return;
+                }
+            } else {
+                if (empty($item['batch_number'])) {
+                    $item['batch_number'] = 'DEFAULT';
+                }
+                if (empty($item['expiry_date'])) {
+                    $item['expiry_date'] = '2099-12-31';
+                }
+            }
+        }
+
         try {
             $purchase = $grnAction->execute([
                 'branch_id' => Auth::user()?->branch_id,
+                'purchase_order_id' => $this->purchase_order_id,
                 'supplier_id' => $this->supplier_id,
                 'supplier_invoice_no' => $this->supplier_invoice_no,
                 'invoice_date' => $this->invoice_date,
@@ -170,16 +252,18 @@ class PurchaseCreateForm extends Component
                 'discount' => $this->discount,
                 'tax_amount' => $this->tax_amount,
                 'paid_amount' => $this->paid_amount,
+                'payment_method' => $this->payment_method,
+                'transaction_reference' => $this->transaction_reference,
                 'notes' => $this->notes,
                 'items' => $this->items,
             ]);
 
-            $this->successMessage = "GRN Purchase #{$purchase->purchase_no} recorded & batches created!";
-            $this->reset(['supplier_id', 'supplier_invoice_no', 'discount', 'tax_amount', 'paid_amount', 'notes']);
+            $this->successMessage = "GRN Purchase #{$purchase->purchase_no} recorded & inventory updated successfully!";
+            $this->reset(['supplier_id', 'supplier_invoice_no', 'discount', 'tax_amount', 'paid_amount', 'transaction_reference', 'notes', 'purchase_order_id', 'sourcePo']);
             $this->items = [];
             $this->addItemRow();
         } catch (Exception $e) {
-            $this->errorMessage = 'GRN failed: '.$e->getMessage();
+            $this->errorMessage = 'Error saving purchase: ' . $e->getMessage();
         }
     }
 
@@ -187,8 +271,8 @@ class PurchaseCreateForm extends Component
     {
         return view('livewire.purchases.purchase-create-form', [
             'suppliers' => Supplier::orderBy('name')->get(),
-            'products' => Product::with('baseUnit')->where('status', 'active')->orderBy('name')->get(),
-            'units' => Unit::orderBy('name')->get(),
+            'products' => Product::with(['productUnits.unit', 'baseUnit'])->where('status', 'active')->orderBy('name')->get(),
+            'units' => Unit::all(),
         ]);
     }
 }

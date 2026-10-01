@@ -28,7 +28,10 @@ class RolePermissionSeeder extends Seeder
             'Purchases' => [
                 'view_purchases' => 'View purchase list and bills',
                 'create_purchases' => 'Create new purchase entry',
+                'edit_purchases' => 'Edit purchase bill & details',
+                'delete_purchases' => 'Delete purchase & reverse stock',
                 'return_purchases' => 'Process purchase return to supplier',
+                'manage_purchase_payments' => 'Record multiple split payments for purchases',
             ],
             'Products' => [
                 'view_products' => 'View all products list',
@@ -136,7 +139,7 @@ class RolePermissionSeeder extends Seeder
         $managerRole->syncPermissions([
             'view_dashboard',
             'view_sales', 'create_sales', 'return_sales',
-            'view_purchases', 'create_purchases', 'return_purchases',
+            'view_purchases', 'create_purchases', 'edit_purchases', 'delete_purchases', 'return_purchases', 'manage_purchase_payments',
             'view_products', 'create_products', 'edit_products', 'view_expired_products', 'print_barcodes', 'bulk_upload_products',
             'manage_categories', 'manage_units', 'manage_medicine_types', 'manage_manufacturers', 'manage_box_sizes',
             'view_stocks', 'manage_reorder', 'manage_expiry_damage', 'view_batches', 'manage_stock_adjustments', 'manage_stock_transfers',
@@ -168,7 +171,7 @@ class RolePermissionSeeder extends Seeder
         $accountantRole = Role::firstOrCreate(['name' => 'Accountant', 'guard_name' => 'web']);
         $accountantRole->syncPermissions([
             'view_dashboard',
-            'view_sales', 'view_purchases',
+            'view_sales', 'view_purchases', 'manage_purchase_payments',
             'view_incomes', 'manage_incomes', 'manage_income_categories',
             'view_expenses', 'manage_expenses', 'manage_expense_categories',
             'manage_taxes',
@@ -185,7 +188,7 @@ class RolePermissionSeeder extends Seeder
             'view_products', 'create_products', 'edit_products', 'view_expired_products', 'print_barcodes', 'bulk_upload_products',
             'manage_categories', 'manage_units', 'manage_medicine_types', 'manage_manufacturers', 'manage_box_sizes',
             'view_stocks', 'manage_reorder', 'manage_expiry_damage', 'view_batches', 'manage_stock_adjustments', 'manage_stock_transfers',
-            'view_purchases', 'create_purchases', 'return_purchases',
+            'view_purchases', 'create_purchases', 'edit_purchases', 'return_purchases', 'manage_purchase_payments',
             'view_suppliers', 'manage_suppliers',
             'view_stock_reports', 'view_purchase_reports', 'view_supplier_ledger', 'view_expired_reports',
         ]);

@@ -12,6 +12,8 @@ use App\Models\Product;
 use App\Models\ProductUnit;
 use App\Models\Tax;
 use App\Models\Unit;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Cache;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -68,6 +70,8 @@ class ProductManager extends Component
 
     public bool $isColdChain = false;
 
+    public bool $hasBatchTracking = true;
+
     // Product Price, Stock Section State (Exact to Reference UI)
     public string $stockType = 'Single'; // 'Single' or 'Batch'
 
@@ -97,6 +101,11 @@ class ProductManager extends Component
 
     public string $batchNumber = '';
 
+    // Initial Stock & Batches System
+    public bool $hasOpeningStock = true;
+
+    public array $initialBatches = [];
+
     // Dynamic Multi-Unit System
     public ?int $baseUnitId = null;
 
@@ -115,8 +124,12 @@ class ProductManager extends Component
 
     public string $newMasterDescription = '';
 
-    // Bulk Upload
+    // Bulk Studio State
+    public string $bulkMode = 'grid'; // 'grid' (Direct Excel Table) or 'file' (CSV Upload)
+
     public $csvFile;
+
+    public array $bulkRows = [];
 
     public function mount()
     {
@@ -143,6 +156,10 @@ class ProductManager extends Component
             $this->tab = request()->query('tab', 'all');
         }
 
+        if (empty($this->bulkRows)) {
+            $this->addMultipleBulkRows(6);
+        }
+
         $pieceUnit = Unit::where('name', 'like', '%piece%')->orWhere('short_code', 'pcs')->first() ?? Unit::first();
         if ($pieceUnit && ! $this->baseUnitId) {
             $this->baseUnitId = $pieceUnit->id;
@@ -158,6 +175,58 @@ class ProductManager extends Component
         }
         if (empty($this->expireDate)) {
             $this->expireDate = date('Y-m-d', strtotime('+2 years'));
+        }
+
+        if (empty($this->initialBatches)) {
+            $this->initialBatches = [
+                [
+                    'batch_number' => 'B-'.date('ym').'-'.rand(100, 999),
+                    'unit_id' => $this->baseUnitId,
+                    'quantity' => 10,
+                    'purchase_price' => $this->purchasePrice > 0 ? $this->purchasePrice : 0,
+                    'mrp_price' => $this->mrpPrice > 0 ? $this->mrpPrice : 0,
+                    'manufacturing_date' => date('Y-m-d'),
+                    'expiry_date' => date('Y-m-d', strtotime('+2 years')),
+                    'rack_location' => '',
+                ],
+            ];
+        }
+    }
+
+    public function addBatchRow()
+    {
+        $this->initialBatches[] = [
+            'batch_number' => 'B-'.date('ym').'-'.rand(100, 999),
+            'unit_id' => $this->baseUnitId,
+            'quantity' => 10,
+            'purchase_price' => $this->purchasePrice > 0 ? $this->purchasePrice : 0,
+            'mrp_price' => $this->mrpPrice > 0 ? $this->mrpPrice : 0,
+            'manufacturing_date' => date('Y-m-d'),
+            'expiry_date' => date('Y-m-d', strtotime('+2 years')),
+            'rack_location' => $this->rackLocation ?? '',
+        ];
+    }
+
+    public function removeBatchRow(int $index)
+    {
+        unset($this->initialBatches[$index]);
+        $this->initialBatches = array_values($this->initialBatches);
+        if (empty($this->initialBatches)) {
+            $this->hasOpeningStock = false;
+        }
+    }
+
+    public function setBatchExpiryPreset(int $index, string $duration)
+    {
+        if (isset($this->initialBatches[$index])) {
+            $this->initialBatches[$index]['expiry_date'] = date('Y-m-d', strtotime("+{$duration}"));
+        }
+    }
+
+    public function generateBatchNumber(int $index)
+    {
+        if (isset($this->initialBatches[$index])) {
+            $this->initialBatches[$index]['batch_number'] = 'B-'.date('ym').'-'.rand(100, 999);
         }
     }
 
@@ -436,6 +505,7 @@ class ProductManager extends Component
                 'is_narcotic' => $this->isNarcotic,
                 'requires_prescription' => $this->requiresPrescription,
                 'is_cold_chain' => $this->isColdChain,
+                'has_batch_tracking' => $this->hasBatchTracking,
                 'image_path' => $imagePath,
                 'status' => 'active',
             ]
@@ -471,24 +541,61 @@ class ProductManager extends Component
             }
         }
 
-        // 3. Save Opening Stock Batch
-        if ($this->quantity > 0) {
-            $batchNo = ! empty($this->batchNumber) ? $this->batchNumber : ($this->stockType === 'Batch' ? 'B-'.date('Ym').'-'.rand(100, 999) : 'OP-'.date('Ymd'));
-            $expiry = ! empty($this->expireDate) ? $this->expireDate : date('Y-m-d', strtotime('+2 years'));
+        // 3. Save Opening Stock Batches
+        if ($this->hasOpeningStock && ! empty($this->initialBatches)) {
+            foreach ($this->initialBatches as $b) {
+                $qty = (int) ($b['quantity'] ?? 0);
+                if ($qty > 0) {
+                    $unitId = ! empty($b['unit_id']) ? (int) $b['unit_id'] : $this->baseUnitId;
+                    $multiplier = 1;
+                    if ($unitId !== $this->baseUnitId) {
+                        $pack = collect($this->packagingUnits)->firstWhere('unit_id', $unitId);
+                        if ($pack) {
+                            $multiplier = (int) ($pack['multiplier'] ?? 1);
+                        }
+                    }
+                    $baseQty = $qty * $multiplier;
+                    $batchNo = ! empty($b['batch_number']) ? trim($b['batch_number']) : ('B-'.date('ym').'-'.rand(100, 999));
+                    $expiry = ! empty($b['expiry_date']) ? $b['expiry_date'] : date('Y-m-d', strtotime('+2 years'));
+                    $mfg = ! empty($b['manufacturing_date']) ? $b['manufacturing_date'] : date('Y-m-d');
+                    $buyRate = (float) ($b['purchase_price'] ?? ($this->costExclTax > 0 ? $this->costExclTax : $this->purchasePrice));
+                    $mrpRate = (float) ($b['mrp_price'] ?? $this->mrpPrice);
 
-            Batch::updateOrCreate(
-                ['product_id' => $product->id, 'batch_number' => $batchNo],
-                [
-                    'branch_id' => $product->branch_id,
-                    'base_unit_id' => $this->baseUnitId,
-                    'initial_stock' => $this->quantity,
-                    'current_stock' => $this->quantity,
-                    'purchase_rate' => $this->costExclTax > 0 ? $this->costExclTax : $this->costInclTax,
-                    'mrp_rate' => $this->mrpPrice,
-                    'manufacture_date' => $this->manufacturingDate,
-                    'expiry_date' => $expiry,
-                ]
-            );
+                    if ($multiplier > 1 && $buyRate > 0) {
+                        $buyRate = round($buyRate / $multiplier, 4);
+                    }
+                    if ($multiplier > 1 && $mrpRate > 0) {
+                        $mrpRate = round($mrpRate / $multiplier, 2);
+                    }
+
+                    if (! empty($b['id'])) {
+                        Batch::where('id', $b['id'])->update([
+                            'branch_id' => $product->branch_id,
+                            'batch_number' => $batchNo,
+                            'base_unit_id' => $this->baseUnitId,
+                            'current_stock' => $baseQty,
+                            'purchase_rate' => $buyRate,
+                            'mrp_rate' => $mrpRate,
+                            'manufacture_date' => $mfg,
+                            'expiry_date' => $expiry,
+                        ]);
+                    } else {
+                        Batch::updateOrCreate(
+                            ['product_id' => $product->id, 'batch_number' => $batchNo],
+                            [
+                                'branch_id' => $product->branch_id,
+                                'base_unit_id' => $this->baseUnitId,
+                                'initial_stock' => $baseQty,
+                                'current_stock' => $baseQty,
+                                'purchase_rate' => $buyRate,
+                                'mrp_rate' => $mrpRate,
+                                'manufacture_date' => $mfg,
+                                'expiry_date' => $expiry,
+                            ]
+                        );
+                    }
+                }
+            }
         }
 
         session()->flash('success', 'Medicine registered successfully with pricing, stock & packaging units!');
@@ -499,6 +606,18 @@ class ProductManager extends Component
             'packagingUnits', 'imageFile', 'existingImagePath', 'editingProductId',
             'isNarcotic', 'requiresPrescription', 'isColdChain', 'taxRate', 'quantity', 'batchNumber',
         ]);
+        $this->initialBatches = [
+            [
+                'batch_number' => 'B-'.date('ym').'-'.rand(100, 999),
+                'unit_id' => $this->baseUnitId,
+                'quantity' => 10,
+                'purchase_price' => 0.00,
+                'mrp_price' => 0.00,
+                'manufacturing_date' => date('Y-m-d'),
+                'expiry_date' => date('Y-m-d', strtotime('+2 years')),
+                'rack_location' => '',
+            ],
+        ];
         $this->tab = 'all';
     }
 
@@ -528,6 +647,7 @@ class ProductManager extends Component
         $this->isNarcotic = (bool) $p->is_narcotic;
         $this->requiresPrescription = (bool) $p->requires_prescription;
         $this->isColdChain = (bool) $p->is_cold_chain;
+        $this->hasBatchTracking = (bool) ($p->has_batch_tracking ?? true);
         $this->existingImagePath = $p->image_path;
 
         $baseUnit = $p->productUnits->firstWhere('unit_id', $p->base_unit_id);
@@ -537,13 +657,26 @@ class ProductManager extends Component
 
         $this->recalculatePrices('cost_excl');
 
-        // Check latest batch
-        $latestBatch = $p->batches()->latest()->first();
-        if ($latestBatch) {
-            $this->quantity = (int) $latestBatch->current_stock;
-            $this->batchNumber = $latestBatch->batch_number;
-            $this->manufacturingDate = $latestBatch->manufacture_date;
-            $this->expireDate = $latestBatch->expiry_date;
+        // Load batches
+        $this->initialBatches = [];
+        $batches = $p->batches()->orderBy('expiry_date', 'asc')->get();
+        if ($batches->isNotEmpty()) {
+            $this->hasOpeningStock = true;
+            foreach ($batches as $b) {
+                $this->initialBatches[] = [
+                    'id' => $b->id,
+                    'batch_number' => $b->batch_number,
+                    'unit_id' => $b->base_unit_id ?? $p->base_unit_id,
+                    'quantity' => (int) $b->current_stock,
+                    'purchase_price' => (float) $b->purchase_rate,
+                    'mrp_price' => (float) $b->mrp_rate,
+                    'manufacturing_date' => $b->manufacture_date ? date('Y-m-d', strtotime($b->manufacture_date)) : date('Y-m-d'),
+                    'expiry_date' => $b->expiry_date ? date('Y-m-d', strtotime($b->expiry_date)) : date('Y-m-d', strtotime('+2 years')),
+                    'rack_location' => $p->rack_location ?? '',
+                ];
+            }
+        } else {
+            $this->hasOpeningStock = false;
         }
 
         $this->packagingUnits = [];
@@ -584,8 +717,264 @@ class ProductManager extends Component
             $this->boxSizeId = $b->id;
         }
 
+        Cache::forget('masters_'.$type);
+        Cache::forget('masters_categories');
+        Cache::forget('masters_manufacturers');
+        Cache::forget('masters_generics');
+        Cache::forget('masters_units');
+        Cache::forget('masters_medicine_types');
+        Cache::forget('masters_box_sizes');
+
         $this->reset(['newMasterName', 'newMasterDescription']);
         session()->flash('success', 'Master entry added successfully!');
+    }
+
+    // Bulk Excel Grid Operations
+    public function addBulkRow(): void
+    {
+        $defaultUnit = Unit::first();
+        $this->bulkRows[] = [
+            'name' => '',
+            'generic_id' => '',
+            'category_id' => '',
+            'manufacturer_id' => '',
+            'unit_id' => $defaultUnit?->id ?? '',
+            'purchase_price' => '',
+            'mrp_price' => '',
+            'quantity' => '',
+            'batch_number' => '',
+            'expiry_date' => date('Y-m-d', strtotime('+2 years')),
+        ];
+    }
+
+    public function addMultipleBulkRows(int $count = 5): void
+    {
+        for ($i = 0; $i < $count; $i++) {
+            $this->addBulkRow();
+        }
+    }
+
+    public function removeBulkRow(int $index): void
+    {
+        unset($this->bulkRows[$index]);
+        $this->bulkRows = array_values($this->bulkRows);
+        if (empty($this->bulkRows)) {
+            $this->addBulkRow();
+        }
+    }
+
+    public function clearBulkRows(): void
+    {
+        $this->bulkRows = [];
+        $this->addMultipleBulkRows(10);
+    }
+
+    public function importPastedTsv(string $rawTsv): void
+    {
+        $lines = explode("\n", trim($rawTsv));
+        if (empty($lines)) {
+            return;
+        }
+
+        $defaultUnit = Unit::first();
+        $newRows = [];
+
+        foreach ($lines as $line) {
+            $line = trim($line, "\r");
+            if (empty($line)) continue;
+            
+            // Tab or comma separated
+            $cols = strpos($line, "\t") !== false ? explode("\t", $line) : str_getcsv($line);
+            
+            $name = trim($cols[0] ?? '');
+            if (empty($name) || strtolower($name) === 'medicine name' || strtolower($name) === 'name') {
+                continue; // Skip header row
+            }
+
+            $mrp = trim($cols[1] ?? '');
+            $purchase = trim($cols[2] ?? '');
+            $qty = trim($cols[3] ?? '');
+            $batch = trim($cols[4] ?? '');
+            $expiry = trim($cols[5] ?? date('Y-m-d', strtotime('+2 years')));
+
+            $newRows[] = [
+                'name' => $name,
+                'generic_id' => '',
+                'category_id' => '',
+                'manufacturer_id' => '',
+                'unit_id' => $defaultUnit?->id ?? '',
+                'purchase_price' => is_numeric($purchase) ? $purchase : '',
+                'mrp_price' => is_numeric($mrp) ? $mrp : '',
+                'quantity' => is_numeric($qty) ? $qty : '',
+                'batch_number' => $batch,
+                'expiry_date' => !empty($expiry) ? $expiry : date('Y-m-d', strtotime('+2 years')),
+            ];
+        }
+
+        if (!empty($newRows)) {
+            $this->bulkRows = $newRows;
+            session()->flash('success', count($newRows) . " rows pasted from Excel successfully!");
+        }
+    }
+
+    public function loadSampleBulkData(): void
+    {
+        $defaultUnit = Unit::first();
+        $cat = Category::first();
+        $mfg = Manufacturer::first();
+        $gen = Generic::first();
+
+        $this->bulkRows = [
+            [
+                'name' => 'Napa Extra 500mg+65mg Tablet',
+                'generic_id' => $gen?->id ?? '',
+                'category_id' => $cat?->id ?? '',
+                'manufacturer_id' => $mfg?->id ?? '',
+                'unit_id' => $defaultUnit?->id ?? '',
+                'purchase_price' => '2.50',
+                'mrp_price' => '3.00',
+                'quantity' => '100',
+                'batch_number' => 'B-NE-'.rand(100, 999),
+                'expiry_date' => date('Y-m-d', strtotime('+2 years')),
+            ],
+            [
+                'name' => 'Seclo 20mg Capsule',
+                'generic_id' => $gen?->id ?? '',
+                'category_id' => $cat?->id ?? '',
+                'manufacturer_id' => $mfg?->id ?? '',
+                'unit_id' => $defaultUnit?->id ?? '',
+                'purchase_price' => '5.00',
+                'mrp_price' => '6.00',
+                'quantity' => '50',
+                'batch_number' => 'B-SC-'.rand(100, 999),
+                'expiry_date' => date('Y-m-d', strtotime('+18 months')),
+            ],
+            [
+                'name' => 'Sergel 20mg Capsule',
+                'generic_id' => $gen?->id ?? '',
+                'category_id' => $cat?->id ?? '',
+                'manufacturer_id' => $mfg?->id ?? '',
+                'unit_id' => $defaultUnit?->id ?? '',
+                'purchase_price' => '6.50',
+                'mrp_price' => '7.00',
+                'quantity' => '60',
+                'batch_number' => 'B-SG-'.rand(100, 999),
+                'expiry_date' => date('Y-m-d', strtotime('+2 years')),
+            ],
+            [
+                'name' => 'Maxpro 20mg Tablet',
+                'generic_id' => $gen?->id ?? '',
+                'category_id' => $cat?->id ?? '',
+                'manufacturer_id' => $mfg?->id ?? '',
+                'unit_id' => $defaultUnit?->id ?? '',
+                'purchase_price' => '7.00',
+                'mrp_price' => '8.00',
+                'quantity' => '40',
+                'batch_number' => 'B-MP-'.rand(100, 999),
+                'expiry_date' => date('Y-m-d', strtotime('+2 years')),
+            ],
+            [
+                'name' => 'Ace Plus 500mg+65mg Tablet',
+                'generic_id' => $gen?->id ?? '',
+                'category_id' => $cat?->id ?? '',
+                'manufacturer_id' => $mfg?->id ?? '',
+                'unit_id' => $defaultUnit?->id ?? '',
+                'purchase_price' => '2.50',
+                'mrp_price' => '3.00',
+                'quantity' => '80',
+                'batch_number' => 'B-AP-'.rand(100, 999),
+                'expiry_date' => date('Y-m-d', strtotime('+20 months')),
+            ],
+        ];
+
+        session()->flash('success', 'Sample medicine data loaded into Excel grid!');
+    }
+
+    public function saveBulkGrid(): void
+    {
+        $validRows = array_filter($this->bulkRows, fn ($r) => ! empty(trim($r['name'] ?? '')));
+
+        if (empty($validRows)) {
+            session()->flash('error', 'Please enter at least one medicine name in the table.');
+
+            return;
+        }
+
+        $defaultUnit = Unit::firstOrCreate(['name' => 'Piece'], ['short_code' => 'pcs', 'conversion_factor' => 1, 'is_base_unit' => true]);
+        $importedCount = 0;
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($validRows, $defaultUnit, &$importedCount) {
+            foreach ($validRows as $row) {
+                $name = trim($row['name']);
+                $unitId = ! empty($row['unit_id']) ? (int) $row['unit_id'] : $defaultUnit->id;
+                $mrp = (float) ($row['mrp_price'] ?? 0);
+                $purchase = (float) (! empty($row['purchase_price']) ? $row['purchase_price'] : ($mrp > 0 ? $mrp * 0.8 : 0));
+                $qty = (int) ($row['quantity'] ?? 0);
+                $batchNo = ! empty($row['batch_number']) ? trim($row['batch_number']) : 'OP-'.date('Ymd').'-'.rand(100, 999);
+                $expiry = ! empty($row['expiry_date']) ? $row['expiry_date'] : date('Y-m-d', strtotime('+2 years'));
+
+                $prod = Product::create([
+                    'name' => $name,
+                    'generic_id' => ! empty($row['generic_id']) ? (int) $row['generic_id'] : null,
+                    'category_id' => ! empty($row['category_id']) ? (int) $row['category_id'] : null,
+                    'manufacturer_id' => ! empty($row['manufacturer_id']) ? (int) $row['manufacturer_id'] : null,
+                    'base_unit_id' => $unitId,
+                    'sku' => 'SKU-'.strtoupper(substr(uniqid(), -6)),
+                    'barcode' => 'BC'.date('ymd').rand(1000, 9999),
+                    'status' => 'active',
+                ]);
+
+                ProductUnit::create([
+                    'product_id' => $prod->id,
+                    'unit_id' => $unitId,
+                    'multiplier' => 1,
+                    'purchase_price' => $purchase,
+                    'mrp_price' => $mrp,
+                    'is_default_sale' => true,
+                    'is_default_purchase' => true,
+                ]);
+
+                if ($qty > 0) {
+                    Batch::create([
+                        'product_id' => $prod->id,
+                        'batch_number' => $batchNo,
+                        'base_unit_id' => $unitId,
+                        'initial_stock' => $qty,
+                        'current_stock' => $qty,
+                        'purchase_rate' => $purchase,
+                        'mrp_rate' => $mrp,
+                        'manufacture_date' => date('Y-m-d'),
+                        'expiry_date' => $expiry,
+                    ]);
+                }
+
+                $importedCount++;
+            }
+        });
+
+        session()->flash('success', "{$importedCount} medicines imported directly into catalog & inventory!");
+        $this->clearBulkRows();
+        $this->tab = 'all';
+    }
+
+    public function downloadSampleCsv()
+    {
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="pharmacy_bulk_medicines_sample.csv"',
+        ];
+
+        $callback = function () {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, ['Medicine Name', 'MRP Price', 'Purchase Price', 'Opening Qty', 'Batch No', 'Expiry Date (YYYY-MM-DD)']);
+            fputcsv($file, ['Napa Extra 500mg+65mg Tablet', '3.00', '2.50', '100', 'B-101', '2028-12-31']);
+            fputcsv($file, ['Seclo 20mg Capsule', '6.00', '5.00', '50', 'B-102', '2028-06-30']);
+            fputcsv($file, ['Sergel 20mg Capsule', '7.00', '6.50', '60', 'B-103', '2028-10-15']);
+            fputcsv($file, ['Maxpro 20mg Tablet', '8.00', '7.00', '40', 'B-104', '2028-12-31']);
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 
     public function processBulkUpload()
@@ -599,69 +988,95 @@ class ProductManager extends Component
         $count = 0;
         $defaultUnit = Unit::firstOrCreate(['name' => 'Piece'], ['short_code' => 'pcs', 'conversion_factor' => 1, 'is_base_unit' => true]);
 
-        while (($row = fgetcsv($file)) !== false) {
-            if (count($row) >= 2) {
-                $name = trim($row[0]);
-                $mrp = (float) ($row[1] ?? 0);
-                $purchase = (float) ($row[2] ?? ($mrp * 0.8));
+        \Illuminate\Support\Facades\DB::transaction(function () use ($file, $defaultUnit, &$count) {
+            while (($row = fgetcsv($file)) !== false) {
+                if (count($row) >= 2) {
+                    $name = trim($row[0]);
+                    $mrp = (float) ($row[1] ?? 0);
+                    $purchase = (float) ($row[2] ?? ($mrp > 0 ? $mrp * 0.8 : 0));
+                    $qty = (int) ($row[3] ?? 0);
+                    $batchNo = ! empty($row[4]) ? trim($row[4]) : 'OP-'.date('Ymd').'-'.rand(100, 999);
+                    $expiry = ! empty($row[5]) ? trim($row[5]) : date('Y-m-d', strtotime('+2 years'));
 
-                if (! empty($name)) {
-                    $prod = Product::create([
-                        'name' => $name,
-                        'base_unit_id' => $defaultUnit->id,
-                        'sku' => 'SKU-'.strtoupper(substr(uniqid(), -6)),
-                        'barcode' => 'BC'.date('ymdHis').rand(10, 99),
-                        'status' => 'active',
-                    ]);
+                    if (! empty($name)) {
+                        $prod = Product::create([
+                            'name' => $name,
+                            'base_unit_id' => $defaultUnit->id,
+                            'sku' => 'SKU-'.strtoupper(substr(uniqid(), -6)),
+                            'barcode' => 'BC'.date('ymd').rand(1000, 9999),
+                            'status' => 'active',
+                        ]);
 
-                    ProductUnit::create([
-                        'product_id' => $prod->id,
-                        'unit_id' => $defaultUnit->id,
-                        'multiplier' => 1,
-                        'purchase_price' => $purchase,
-                        'mrp_price' => $mrp,
-                        'is_default_sale' => true,
-                    ]);
+                        ProductUnit::create([
+                            'product_id' => $prod->id,
+                            'unit_id' => $defaultUnit->id,
+                            'multiplier' => 1,
+                            'purchase_price' => $purchase,
+                            'mrp_price' => $mrp,
+                            'is_default_sale' => true,
+                            'is_default_purchase' => true,
+                        ]);
 
-                    $count++;
+                        if ($qty > 0) {
+                            Batch::create([
+                                'product_id' => $prod->id,
+                                'batch_number' => $batchNo,
+                                'base_unit_id' => $defaultUnit->id,
+                                'initial_stock' => $qty,
+                                'current_stock' => $qty,
+                                'purchase_rate' => $purchase,
+                                'mrp_rate' => $mrp,
+                                'manufacture_date' => date('Y-m-d'),
+                                'expiry_date' => $expiry,
+                            ]);
+                        }
+
+                        $count++;
+                    }
                 }
             }
-        }
+        });
+
         fclose($file);
 
-        session()->flash('success', "Bulk uploaded {$count} medicines successfully!");
+        session()->flash('success', "Bulk uploaded and created {$count} medicines with inventory batches!");
         $this->tab = 'all';
     }
 
     public function render()
     {
-        $productsQuery = Product::with(['generic', 'category', 'manufacturer', 'baseUnit', 'batches'])
-            ->when($this->search, function ($q) {
-                $term = '%'.trim($this->search).'%';
-                $q->where('name', 'like', $term)
-                    ->orWhere('sku', 'like', $term)
-                    ->orWhere('barcode', 'like', $term);
-            })
-            ->when($this->filterCategory, fn ($q) => $q->where('category_id', $this->filterCategory))
-            ->when($this->filterManufacturer, fn ($q) => $q->where('manufacturer_id', $this->filterManufacturer))
-            ->latest('id');
+        $products = $this->tab === 'all'
+            ? Product::with(['generic', 'category', 'manufacturer', 'baseUnit', 'batches', 'productUnits.unit'])
+                ->when($this->search, function ($q) {
+                    $term = '%'.trim($this->search).'%';
+                    $q->where('name', 'like', $term)
+                        ->orWhere('sku', 'like', $term)
+                        ->orWhere('barcode', 'like', $term);
+                })
+                ->when($this->filterCategory, fn ($q) => $q->where('category_id', $this->filterCategory))
+                ->when($this->filterManufacturer, fn ($q) => $q->where('manufacturer_id', $this->filterManufacturer))
+                ->latest('id')
+                ->paginate($this->perPage)
+            : new LengthAwarePaginator([], 0, $this->perPage);
 
-        $expiredBatches = Batch::with(['product'])
-            ->where('current_stock', '>', 0)
-            ->where('expiry_date', '<', now()->toDateString())
-            ->latest('expiry_date')
-            ->paginate($this->perPage);
+        $expiredBatches = $this->tab === 'expired'
+            ? Batch::with(['product'])
+                ->where('current_stock', '>', 0)
+                ->where('expiry_date', '<', now()->toDateString())
+                ->latest('expiry_date')
+                ->paginate($this->perPage)
+            : new LengthAwarePaginator([], 0, $this->perPage);
 
         return view('livewire.products.product-manager', [
-            'products' => $productsQuery->paginate($this->perPage),
+            'products' => $products,
             'expiredBatches' => $expiredBatches,
-            'categories' => Category::orderBy('name')->get(),
-            'manufacturers' => Manufacturer::orderBy('name')->get(),
-            'generics' => Generic::orderBy('name')->get(),
-            'units' => Unit::orderBy('name')->get(),
-            'medicineTypes' => MedicineType::orderBy('name')->get(),
-            'boxSizes' => BoxSize::orderBy('name')->get(),
-            'taxes' => Tax::orderBy('name')->get(),
+            'categories' => Cache::remember('masters_categories', 120, fn () => Category::orderBy('name')->get()),
+            'manufacturers' => Cache::remember('masters_manufacturers', 120, fn () => Manufacturer::orderBy('name')->get()),
+            'generics' => Cache::remember('masters_generics', 120, fn () => Generic::orderBy('name')->get()),
+            'units' => Cache::remember('masters_units', 120, fn () => Unit::orderBy('name')->get()),
+            'medicineTypes' => Cache::remember('masters_medicine_types', 120, fn () => MedicineType::orderBy('name')->get()),
+            'boxSizes' => Cache::remember('masters_box_sizes', 120, fn () => BoxSize::orderBy('name')->get()),
+            'taxes' => Cache::remember('masters_taxes', 120, fn () => Tax::orderBy('name')->get()),
         ]);
     }
 }

@@ -123,7 +123,16 @@ class Terminal extends Component
         }
 
         $term = '%'.trim($this->search).'%';
-        $products = Product::with(['category', 'generic', 'manufacturer', 'productUnits.unit', 'baseUnit'])
+        $today = now()->toDateString();
+
+        $products = Product::select('id', 'name', 'sku', 'barcode', 'generic_id', 'category_id', 'manufacturer_id', 'base_unit_id', 'is_narcotic', 'requires_prescription', 'is_cold_chain')
+            ->with([
+                'category:id,name',
+                'generic:id,name',
+                'manufacturer:id,name',
+                'baseUnit:id,name,short_code',
+            ])
+            ->withSum(['batches as stock_pieces' => fn ($q) => $q->where('expiry_date', '>', $today)], 'current_stock')
             ->where('status', 'active')
             ->where(function ($q) use ($term) {
                 $q->where('name', 'like', $term)
@@ -131,12 +140,10 @@ class Terminal extends Component
                     ->orWhere('sku', 'like', $term)
                     ->orWhereHas('generic', fn ($g) => $g->where('name', 'like', $term));
             })
-            ->limit(10)
+            ->limit(12)
             ->get();
 
         $this->searchResults = $products->map(function ($p) {
-            $stock = $p->totalStockPieces();
-
             return [
                 'id' => $p->id,
                 'name' => $p->name,
@@ -146,7 +153,7 @@ class Terminal extends Component
                 'generic_id' => $p->generic_id,
                 'category_name' => $p->category?->name ?? 'General',
                 'manufacturer_name' => $p->manufacturer?->name ?? 'N/A',
-                'stock_pieces' => $stock,
+                'stock_pieces' => (int) ($p->stock_pieces ?? 0),
                 'is_narcotic' => (bool) $p->is_narcotic,
                 'requires_prescription' => (bool) $p->requires_prescription,
                 'is_cold_chain' => (bool) $p->is_cold_chain,
@@ -176,8 +183,11 @@ class Terminal extends Component
     public function addToCart(int $productId)
     {
         $this->errorMessage = null;
-        $product = Product::with(['productUnits.unit', 'baseUnit'])->findOrFail($productId);
-        $stockPieces = $product->totalStockPieces();
+        $today = now()->toDateString();
+        $product = Product::with(['productUnits.unit', 'baseUnit'])
+            ->withSum(['batches as stock_pieces' => fn ($q) => $q->where('expiry_date', '>', $today)], 'current_stock')
+            ->findOrFail($productId);
+        $stockPieces = (int) ($product->stock_pieces ?? 0);
 
         if ($stockPieces <= 0) {
             $this->errorMessage = "Medicine [{$product->name}] is currently OUT OF STOCK.";
@@ -571,8 +581,11 @@ class Terminal extends Component
     {
         $this->selectedGenericId = $genericId;
         $this->selectedGenericName = $genericName;
+        $today = now()->toDateString();
 
-        $alternatives = Product::with(['manufacturer', 'category', 'productUnits.unit', 'baseUnit'])
+        $alternatives = Product::select('id', 'name', 'manufacturer_id', 'base_unit_id')
+            ->with(['manufacturer:id,name', 'baseUnit:id,name,short_code'])
+            ->withSum(['batches as stock_pieces' => fn ($q) => $q->where('expiry_date', '>', $today)], 'current_stock')
             ->where('generic_id', $genericId)
             ->where('status', 'active')
             ->get();
@@ -582,7 +595,7 @@ class Terminal extends Component
                 'id' => $p->id,
                 'name' => $p->name,
                 'manufacturer' => $p->manufacturer?->name ?? 'N/A',
-                'stock_pieces' => $p->totalStockPieces(),
+                'stock_pieces' => (int) ($p->stock_pieces ?? 0),
                 'base_unit' => $p->baseUnit?->name ?? 'Piece',
             ];
         })->toArray();
@@ -651,9 +664,9 @@ class Terminal extends Component
 
     public function render()
     {
-        $customers = Customer::orderBy('name')->get();
-        $doctors = Doctor::orderBy('name')->get();
-        $taxes = Tax::where('is_active', true)->orderBy('name')->get();
+        $customers = Customer::select('id', 'name', 'phone', 'current_due')->orderBy('name')->get();
+        $doctors = Doctor::select('id', 'name', 'specialization', 'degrees', 'hospital_name')->orderBy('name')->get();
+        $taxes = Tax::where('is_active', true)->select('id', 'name', 'rate')->orderBy('name')->get();
 
         return view('livewire.pos.terminal', [
             'customers' => $customers,

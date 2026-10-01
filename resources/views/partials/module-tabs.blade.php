@@ -19,10 +19,12 @@
             ]
         ],
         'purchases' => [
-            'matches' => ['purchases.*'],
+            'matches' => ['purchases.*', 'purchase-orders.*'],
             'tabs' => [
-                ['label' => 'Purchase New', 'route' => 'purchases.create', 'icon' => '➕', 'can' => 'create_purchases', 'active' => request()->routeIs('purchases.create')],
-                ['label' => 'Purchase List', 'route' => 'purchases.index', 'icon' => '📑', 'can' => 'view_purchases', 'active' => request()->routeIs('purchases.index')],
+                ['label' => 'Purchase Orders (PO)', 'route' => 'purchase-orders.index', 'icon' => '📑', 'can' => 'view_purchases', 'active' => request()->routeIs('purchase-orders.index')],
+                ['label' => 'Create PO', 'route' => 'purchase-orders.create', 'icon' => '📝', 'can' => 'create_purchases', 'active' => request()->routeIs('purchase-orders.create')],
+                ['label' => 'Purchase New (GRN)', 'route' => 'purchases.create', 'icon' => '➕', 'can' => 'create_purchases', 'active' => request()->routeIs('purchases.create')],
+                ['label' => 'Purchase List', 'route' => 'purchases.index', 'icon' => '📦', 'can' => 'view_purchases', 'active' => request()->routeIs('purchases.index')],
                 ['label' => 'Purchase Return', 'route' => 'purchases.returns', 'icon' => '↩️', 'can' => 'return_purchases', 'active' => request()->routeIs('purchases.returns')],
             ]
         ],
@@ -31,12 +33,14 @@
             'tabs' => [
                 ['label' => 'All Products', 'route' => 'products.index', 'icon' => '💊', 'can' => 'view_products', 'active' => request()->routeIs('products.index')],
                 ['label' => 'Add Product', 'route' => 'products.create', 'icon' => '➕', 'can' => 'create_products', 'active' => request()->routeIs('products.create')],
+                ['label' => 'Cloud Directory', 'route' => 'products.directory', 'icon' => '🌐', 'can' => 'create_products', 'active' => request()->routeIs('products.directory')],
+                ['label' => 'Generics', 'route' => 'products.generics', 'icon' => '🧪', 'can' => 'manage_categories', 'active' => request()->routeIs('products.generics')],
                 ['label' => 'Expired Products', 'route' => 'products.expired', 'icon' => '⚠️', 'can' => 'view_expired_products', 'active' => request()->routeIs('products.expired')],
                 ['label' => 'Print Barcodes', 'route' => 'products.barcodes', 'icon' => '🏷️', 'can' => 'print_barcodes', 'active' => request()->routeIs('products.barcodes')],
                 ['label' => 'Bulk CSV Upload', 'route' => 'products.bulk-upload', 'icon' => '📤', 'can' => 'bulk_upload_products', 'active' => request()->routeIs('products.bulk-upload')],
                 ['label' => 'Categories', 'route' => 'products.categories', 'icon' => '📁', 'can' => 'manage_categories', 'active' => request()->routeIs('products.categories')],
                 ['label' => 'Units', 'route' => 'products.units', 'icon' => '📦', 'can' => 'manage_units', 'active' => request()->routeIs('products.units')],
-                ['label' => 'Medicine Types', 'route' => 'products.medicine-types', 'icon' => '🧪', 'can' => 'manage_medicine_types', 'active' => request()->routeIs('products.medicine-types')],
+                ['label' => 'Medicine Types', 'route' => 'products.medicine-types', 'icon' => '💊', 'can' => 'manage_medicine_types', 'active' => request()->routeIs('products.medicine-types')],
                 ['label' => 'Manufacturers', 'route' => 'products.manufacturers', 'icon' => '🏭', 'can' => 'manage_manufacturers', 'active' => request()->routeIs('products.manufacturers')],
                 ['label' => 'Box Sizes', 'route' => 'products.box-sizes', 'icon' => '📐', 'can' => 'manage_box_sizes', 'active' => request()->routeIs('products.box-sizes')],
             ]
@@ -169,7 +173,7 @@
                             class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition whitespace-nowrap cursor-pointer select-none {{ $isActive ? 'bg-sky-600 text-white shadow-xs' : 'text-slate-600 bg-slate-100/90 hover:bg-sky-50 hover:text-sky-700 border border-slate-200/70' }}"
                         >
                             <span class="text-xs shrink-0">{{ $tab['icon'] ?? '•' }}</span>
-                            <span>{{ $tab['label'] }}</span>
+                            <span>{{ __($tab['label']) }}</span>
                         </a>
                     @endif
                 @endforeach

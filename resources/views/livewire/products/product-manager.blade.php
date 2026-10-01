@@ -33,7 +33,7 @@
 
     @if (session('success'))
         <div class="p-3.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-2 shadow-xs">
-            <svg class="w-4 h-4 flex-shrink-0 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+            <svg class="w-4 h-4 flex-shrink-0 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m4.5 12.75 6 6 9-13.5" /></svg>
             <span>{{ session('success') }}</span>
         </div>
     @endif
@@ -180,20 +180,20 @@
                     <div class="bg-white rounded-lg p-5 border border-slate-200 shadow-xs space-y-4">
                         <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                             <div class="flex items-center gap-2">
-                                <span class="w-7 h-7 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center font-bold text-xs">১</span>
+                                <span class="w-7 h-7 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center font-bold text-xs">1</span>
                                 <div>
-                                    <h3 class="font-bold text-sm text-slate-900">ওষুধের প্রাথমিক তথ্য (Basic Medicine Info)</h3>
-                                    <p class="text-[11px] text-slate-500">ব্র্যান্ডের নাম, জেনেরিক, পাওয়ার এবং ম্যানুফ্যাকচারার</p>
+                                    <h3 class="font-bold text-sm text-slate-900">{{ __('Basic Medicine Information') }}</h3>
+                                    <p class="text-[11px] text-slate-500">{{ __('Brand name, generic molecule, strength power and manufacturer company') }}</p>
                                 </div>
                             </div>
-                            <span class="text-[11px] text-slate-400 font-medium"><span class="text-rose-500">*</span> চিহ্নিত ফিল্ডগুলো আবশ্যক</span>
+                            <span class="text-[11px] text-slate-400 font-medium"><span class="text-rose-500">*</span> {{ __('* fields are required') }}</span>
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <!-- Brand Name (Full width, prominent) -->
                             <div class="sm:col-span-2">
                                 <label class="block text-xs font-bold text-slate-800 mb-1">
-                                    ওষুধের ব্র্যান্ডের নাম (Brand Name) <span class="text-rose-500">*</span>
+                                    {{ __('Medicine Brand Name') }} <span class="text-rose-500">*</span>
                                 </label>
                                 <input 
                                     type="text" 
@@ -208,16 +208,16 @@
                             <!-- Generic Molecule -->
                             <div x-data="{ openQuickGeneric: false }">
                                 <div class="flex items-center justify-between mb-1">
-                                    <label class="block text-xs font-semibold text-slate-700">জেনেরিক / মূল উপাদান (Generic)</label>
+                                    <label class="block text-xs font-semibold text-slate-700">{{ __('Generic Molecule / Active Ingredient') }}</label>
                                     <button 
                                         type="button" 
                                         @click="openQuickGeneric = true" 
                                         class="text-[11px] font-bold text-sky-600 hover:text-sky-700 hover:underline flex items-center gap-0.5 cursor-pointer">
-                                        + নতুন জেনেরিক
+                                        {{ __('+ Quick Generic') }}
                                     </button>
                                 </div>
                                 <select wire:model.live="genericId" class="w-full text-xs rounded-lg border border-slate-300 py-2 px-3 text-slate-800 focus:border-sky-600 focus:ring-sky-500/15 bg-white">
-                                    <option value="">-- সিলেক্ট করুন (বা খালি রাখুন) --</option>
+                                    <option value="">{{ __('-- Select Generic (or leave empty) --') }}</option>
                                     @foreach ($generics as $gen) 
                                         <option value="{{ $gen->id }}">{{ $gen->name }}</option> 
                                     @endforeach
@@ -227,23 +227,23 @@
                                 <div x-show="openQuickGeneric" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4">
                                     <div @click.away="openQuickGeneric = false" class="bg-white rounded-xl shadow-xl border border-slate-200 w-full max-w-md p-5 space-y-4">
                                         <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                                            <h4 class="font-bold text-sm text-slate-900">নতুন জেনেরিক যোগ করুন (Quick Generic)</h4>
+                                            <h4 class="font-bold text-sm text-slate-900">{{ __('Add Quick Generic') }}</h4>
                                             <button type="button" @click="openQuickGeneric = false" class="text-slate-400 hover:text-slate-600 text-lg leading-none cursor-pointer">&times;</button>
                                         </div>
                                         <div class="space-y-3 text-left">
                                             <div>
-                                                <label class="block text-xs font-bold text-slate-700 mb-1">জেনেরিকের নাম <span class="text-rose-500">*</span></label>
+                                                <label class="block text-xs font-bold text-slate-700 mb-1">{{ __('Generic Molecule Name') }} <span class="text-rose-500">*</span></label>
                                                 <input type="text" wire:model="newMasterName" placeholder="e.g. Paracetamol, Omeprazole, Montelukast" class="w-full text-xs rounded-lg border border-slate-300 py-2 px-3 focus:border-sky-600" />
                                             </div>
                                             <div>
-                                                <label class="block text-xs font-bold text-slate-700 mb-1">থেরাপিউটিক ব্যবহার / Indication (ঐচ্ছিক)</label>
+                                                <label class="block text-xs font-bold text-slate-700 mb-1">{{ __('Therapeutic Use / Indication (Optional)') }}</label>
                                                 <input type="text" wire:model="newMasterDescription" placeholder="e.g. Fever, Pain relief, Gastric acidity" class="w-full text-xs rounded-lg border border-slate-300 py-2 px-3 focus:border-sky-600" />
                                             </div>
                                         </div>
                                         <div class="flex justify-end gap-2 pt-2">
-                                            <button type="button" @click="openQuickGeneric = false" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer">বাতিল</button>
+                                            <button type="button" @click="openQuickGeneric = false" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer">{{ __('Cancel') }}</button>
                                             <button type="button" wire:click="addMaster('generic')" @click="openQuickGeneric = false" class="px-4 py-1.5 rounded-lg text-xs font-bold bg-sky-600 hover:bg-sky-700 text-white shadow-xs cursor-pointer">
-                                                সেভ ও সিলেক্ট করুন
+                                                {{ __('Save & Select') }}
                                             </button>
                                         </div>
                                     </div>
@@ -252,7 +252,7 @@
 
                             <!-- Strength / Power -->
                             <div>
-                                <label class="block text-xs font-semibold text-slate-700 mb-1">পাওয়ার / মাত্রা (Strength)</label>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">{{ __('Strength / Power') }}</label>
                                 <input 
                                     type="text" 
                                     wire:model.live.debounce.300ms="strength" 
@@ -263,9 +263,9 @@
 
                             <!-- Dosage Form / Medicine Type -->
                             <div>
-                                <label class="block text-xs font-semibold text-slate-700 mb-1">ওষুধের ধরন (Dosage Form)</label>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">{{ __('Dosage Form / Medicine Type') }}</label>
                                 <select wire:model.live="medicineTypeId" class="w-full text-xs rounded-lg border border-slate-300 py-2 px-3 text-slate-800 focus:border-sky-600 focus:ring-sky-500/15 bg-white">
-                                    <option value="">-- ধরন সিলেক্ট করুন --</option>
+                                    <option value="">{{ __('-- Select Dosage Form --') }}</option>
                                     @foreach ($medicineTypes as $type) 
                                         <option value="{{ $type->id }}">{{ $type->name }}</option> 
                                     @endforeach
@@ -274,9 +274,9 @@
 
                             <!-- Category -->
                             <div>
-                                <label class="block text-xs font-semibold text-slate-700 mb-1">ক্যাটাগরি (Category)</label>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">{{ __('Category') }}</label>
                                 <select wire:model.live="categoryId" class="w-full text-xs rounded-lg border border-slate-300 py-2 px-3 text-slate-800 focus:border-sky-600 focus:ring-sky-500/15 bg-white">
-                                    <option value="">-- ক্যাটাগরি সিলেক্ট করুন --</option>
+                                    <option value="">{{ __('-- Select Category --') }}</option>
                                     @foreach ($categories as $cat) 
                                         <option value="{{ $cat->id }}">{{ $cat->name }}</option> 
                                     @endforeach
@@ -285,9 +285,9 @@
 
                             <!-- Manufacturer -->
                             <div class="sm:col-span-2">
-                                <label class="block text-xs font-semibold text-slate-700 mb-1">কোম্পানি / প্রস্তুতকারক (Manufacturer)</label>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">{{ __('Manufacturer / Company') }}</label>
                                 <select wire:model.live="manufacturerId" class="w-full text-xs rounded-lg border border-slate-300 py-2 px-3 text-slate-800 focus:border-sky-600 focus:ring-sky-500/15 bg-white">
-                                    <option value="">-- কোম্পানি সিলেক্ট করুন --</option>
+                                    <option value="">{{ __('-- Select Manufacturer --') }}</option>
                                     @foreach ($manufacturers as $mfg) 
                                         <option value="{{ $mfg->id }}">{{ $mfg->name }}</option> 
                                     @endforeach
@@ -300,14 +300,14 @@
                     <div class="bg-white rounded-lg p-5 border border-slate-200 shadow-xs space-y-4">
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
                             <div class="flex items-center gap-2">
-                                <span class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs">২</span>
+                                <span class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs">2</span>
                                 <div>
-                                    <h3 class="font-bold text-sm text-slate-900">দাম, লাভ ও প্যাকেজিং (Pricing & Packaging)</h3>
-                                    <p class="text-[11px] text-slate-500">প্রতি পিসের ক্রয় ও বিক্রয় মূল্য দিলে পাতা ও বক্সের দাম নিজে নিজে হিসাব হবে</p>
+                                    <h3 class="font-bold text-sm text-slate-900">{{ __('Pricing, Margin & Smart Packaging') }}</h3>
+                                    <p class="text-[11px] text-slate-500">{{ __('Enter single piece buy & sell rate, box and strip prices calculate automatically') }}</p>
                                 </div>
                             </div>
                             <span class="text-[10px] bg-emerald-50 text-emerald-800 font-bold px-2.5 py-1 rounded-full border border-emerald-200 self-start sm:self-auto">
-                                ⚡ অটো প্রফিট ক্যালকুলেটর
+                                {{ __('⚡ Auto Profit Calculator') }}
                             </span>
                         </div>
 
@@ -316,7 +316,7 @@
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 <!-- Base Unit Selector -->
                                 <div>
-                                    <label class="block text-xs font-bold text-slate-800 mb-1">মৌলিক একক (Base Unit) <span class="text-rose-500">*</span></label>
+                                    <label class="block text-xs font-bold text-slate-800 mb-1">{{ __('Base Unit') }} <span class="text-rose-500">*</span></label>
                                     <select wire:model.live="baseUnitId" class="w-full text-xs font-bold text-slate-900 rounded-lg border border-slate-300 py-2 px-2.5 bg-white focus:border-sky-600 focus:ring-sky-500/15">
                                         @foreach ($units as $u)
                                             <option value="{{ $u->id }}" @selected((int)$baseUnitId === (int)$u->id)>
@@ -328,7 +328,7 @@
 
                                 <!-- 1-Pcs Buy Price -->
                                 <div>
-                                    <label class="block text-xs font-bold text-slate-800 mb-1">১ পিসের ক্রয়মূল্য (Buy ৳)</label>
+                                    <label class="block text-xs font-bold text-slate-800 mb-1">{{ __('1-Piece Buy Price (৳)') }}</label>
                                     <div class="relative">
                                         <span class="absolute left-3 top-2 text-xs font-bold text-slate-400 font-mono">৳</span>
                                         <input 
@@ -343,7 +343,7 @@
 
                                 <!-- 1-Pcs MRP / Sell Price -->
                                 <div>
-                                    <label class="block text-xs font-bold text-slate-800 mb-1">১ পিসের বিক্রয়মূল্য (MRP ৳) <span class="text-rose-500">*</span></label>
+                                    <label class="block text-xs font-bold text-slate-800 mb-1">{{ __('1-Piece Sales Price (MRP ৳)') }} <span class="text-rose-500">*</span></label>
                                     <div class="relative">
                                         <span class="absolute left-3 top-2 text-xs font-bold text-sky-700 font-mono">৳</span>
                                         <input 
@@ -368,18 +368,18 @@
                             <div class="flex items-center justify-between px-3.5 py-2 rounded-lg {{ $baseSell > 0 && $profitPerPiece >= 0 ? 'bg-emerald-100/70 border border-emerald-200 text-emerald-900' : 'bg-slate-100 border border-slate-200 text-slate-600' }}">
                                 <div class="flex items-center gap-2 text-xs font-bold">
                                     <svg class="w-4 h-4 text-emerald-700" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941" /></svg>
-                                    <span>প্রতি পিসে লাভ (Profit Margin):</span>
+                                    <span>{{ __('Profit per piece:') }}</span>
                                 </div>
                                 <div class="font-mono font-bold text-xs flex items-center gap-2">
                                     @if ($baseSell > 0)
                                         <span class="{{ $profitPerPiece >= 0 ? 'text-emerald-800' : 'text-rose-600' }}">
-                                            ৳{{ number_format($profitPerPiece, 2) }} / পিস
+                                            ৳{{ number_format($profitPerPiece, 2) }} {{ __('/ Piece') }}
                                         </span>
                                         <span class="px-2 py-0.5 rounded text-[11px] {{ $profitPerPiece >= 0 ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white' }}">
-                                            {{ $marginPct }}% লাভ
+                                            {{ $marginPct }}% {{ __('profit') }}
                                         </span>
                                     @else
-                                        <span class="text-slate-400 font-normal text-[11px]">ক্রয় ও বিক্রয় মূল্য লিখুন</span>
+                                        <span class="text-slate-400 font-normal text-[11px]">{{ __('Enter buy and sell price') }}</span>
                                     @endif
                                 </div>
                             </div>
@@ -388,28 +388,28 @@
                         <!-- 1-Click Packaging Presets & Add Unit Button -->
                         <div class="space-y-3">
                             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                                <label class="block text-xs font-bold text-slate-700">⚡ দ্রুত প্যাকেজিং সাইজ সিলেক্ট করুন (Quick Presets):</label>
+                                <label class="block text-xs font-bold text-slate-700">{{ __('⚡ Select quick packaging preset:') }}</label>
                                 <button type="button" wire:click="addPackagingUnit" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold shadow-xs transition cursor-pointer self-start sm:self-auto">
                                     <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-                                    <span>+ নতুন প্যাকেজিং যোগ করুন (Add Unit)</span>
+                                    <span>{{ __('+ Add Packaging Unit') }}</span>
                                 </button>
                             </div>
 
                             <div class="flex flex-wrap items-center gap-2">
                                 <button type="button" wire:click="applyPreset('10x10')" class="px-3 py-1.5 text-xs rounded-lg border font-bold transition cursor-pointer bg-white text-slate-700 border-slate-300 hover:bg-sky-50 hover:border-sky-300 hover:text-sky-800 shadow-2xs">
-                                    💊 ১০ × ১০ পাতা (১০০ পিস বক্স)
+                                    {{ __('💊 10 × 10 Strip (100 Pcs Box)') }}
                                 </button>
                                 <button type="button" wire:click="applyPreset('5x10')" class="px-3 py-1.5 text-xs rounded-lg border font-bold transition cursor-pointer bg-white text-slate-700 border-slate-300 hover:bg-sky-50 hover:border-sky-300 hover:text-sky-800 shadow-2xs">
-                                    💊 ৫ × ১০ পাতা (৫০ পিস বক্স)
+                                    {{ __('💊 5 × 10 Strip (50 Pcs Box)') }}
                                 </button>
                                 <button type="button" wire:click="applyPreset('3x10')" class="px-3 py-1.5 text-xs rounded-lg border font-bold transition cursor-pointer bg-white text-slate-700 border-slate-300 hover:bg-sky-50 hover:border-sky-300 hover:text-sky-800 shadow-2xs">
-                                    💊 ৩ × ১০ পাতা (৩০ পিস বক্স)
+                                    {{ __('💊 3 × 10 Strip (30 Pcs Box)') }}
                                 </button>
                                 <button type="button" wire:click="applyPreset('2x14')" class="px-3 py-1.5 text-xs rounded-lg border font-bold transition cursor-pointer bg-white text-slate-700 border-slate-300 hover:bg-sky-50 hover:border-sky-300 hover:text-sky-800 shadow-2xs">
-                                    💊 ২ × ১৪ পাতা (২৮ পিস বক্স)
+                                    {{ __('💊 2 × 14 Strip (28 Pcs Box)') }}
                                 </button>
                                 <button type="button" wire:click="applyPreset('single')" class="px-3 py-1.5 text-xs rounded-lg border font-bold transition cursor-pointer bg-white text-slate-700 border-slate-300 hover:bg-sky-50 hover:border-sky-300 hover:text-sky-800 shadow-2xs">
-                                    🧴 ১ পিস / বোতল (সিঙ্গেল প্যাক)
+                                    {{ __('🧴 1 Piece / Bottle (Single Pack)') }}
                                 </button>
                             </div>
                         </div>
@@ -419,21 +419,21 @@
                             <div class="bg-slate-50 px-3.5 py-2.5 border-b border-slate-200 text-xs font-bold text-slate-800 flex items-center justify-between">
                                 <span class="flex items-center gap-1.5">
                                     <span class="w-2 h-2 rounded-full bg-sky-600"></span>
-                                    পাতা ও বক্সের হিসাব তালিকা (Packaging Breakdown Table):
+                                    {{ __('Packaging Breakdown Table:') }}
                                 </span>
-                                <span class="text-[11px] font-normal text-slate-500">মোট স্তর: {{ count($packagingUnits) + 1 }}টি</span>
+                                <span class="text-[11px] font-normal text-slate-500">{{ __('Total tiers:') }} {{ count($packagingUnits) + 1 }}</span>
                             </div>
 
                             @if (count($packagingUnits) > 0)
                                 <table class="w-full text-left text-xs border-collapse">
                                     <thead>
                                         <tr class="bg-white text-[11px] font-bold uppercase text-slate-600 border-b border-slate-200">
-                                            <th class="p-2.5">প্যাকেজিং ইউনিট (Unit)</th>
-                                            <th class="p-2.5 w-28">সাইজ (পিস)</th>
-                                            <th class="p-2.5">ক্রয়মূল্য (Buy ৳)</th>
-                                            <th class="p-2.5">বিক্রয়মূল্য (MRP ৳)</th>
-                                            <th class="p-2.5 text-right">লাভ (৳)</th>
-                                            <th class="p-2.5 text-center w-12">মুছুন</th>
+                                            <th class="p-2.5">{{ __('Packaging Unit') }}</th>
+                                            <th class="p-2.5 w-28">{{ __('Size (Pieces)') }}</th>
+                                            <th class="p-2.5">{{ __('Buy Price (৳)') }}</th>
+                                            <th class="p-2.5">{{ __('MRP Price (৳)') }}</th>
+                                            <th class="p-2.5 text-right">{{ __('Profit (৳)') }}</th>
+                                            <th class="p-2.5 text-center w-12">{{ __('Delete') }}</th>
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-slate-100 bg-white">
@@ -454,7 +454,7 @@
                                                 <td class="p-2.5">
                                                     <div class="flex items-center gap-1">
                                                         <input type="number" min="1" wire:model.live.debounce.300ms="packagingUnits.{{ $index }}.multiplier" class="w-14 text-xs font-bold font-mono text-center py-1 px-1 rounded border border-slate-300" />
-                                                        <span class="text-[11px] text-slate-500">পিস</span>
+                                                        <span class="text-[11px] text-slate-500">{{ __('Pcs') }}</span>
                                                     </div>
                                                 </td>
                                                 <td class="p-2.5">
@@ -469,7 +469,7 @@
                                                     </span>
                                                 </td>
                                                 <td class="p-2.5 text-center">
-                                                    <button type="button" wire:click="removePackagingUnit({{ $index }})" class="p-1 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded transition cursor-pointer font-bold" title="বাদ দিন">
+                                                    <button type="button" wire:click="removePackagingUnit({{ $index }})" class="p-1 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded transition cursor-pointer font-bold" title="{{ __('Delete') }}">
                                                         ✕
                                                     </button>
                                                 </td>
@@ -479,10 +479,10 @@
                                 </table>
                             @else
                                 <div class="p-6 text-center bg-white space-y-2">
-                                    <p class="text-xs text-slate-500">বর্তমানে শুধুমাত্র ১টি বেস ইউনিট রয়েছে। পাতা বা বক্সের হিসাব রাখতে নতুন প্যাকেজিং যোগ করুন।</p>
+                                    <p class="text-xs text-slate-500">{{ __('Currently only 1 base unit is configured. Add packaging to manage strips or boxes.') }}</p>
                                     <button type="button" wire:click="addPackagingUnit" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-50 text-sky-800 border border-sky-200 text-xs font-bold hover:bg-sky-100 transition cursor-pointer">
                                         <svg class="w-4 h-4 text-sky-600" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-                                        <span>+ নতুন প্যাকেজিং স্তর যোগ করুন (Add Strip / Box)</span>
+                                        <span>{{ __('+ Add Strip / Box Packaging Tier') }}</span>
                                     </button>
                                 </div>
                             @endif
@@ -490,9 +490,9 @@
                             <div class="p-2.5 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
                                 <button type="button" wire:click="addPackagingUnit" class="text-xs font-bold text-sky-700 hover:text-sky-900 inline-flex items-center gap-1.5 cursor-pointer">
                                     <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-                                    <span>+ আরও প্যাকেজিং স্তর যোগ করুন</span>
+                                    <span>{{ __('+ Add another packaging tier') }}</span>
                                 </button>
-                                <span class="text-[11px] text-slate-400">পাতা ও বক্সের দাম অটো আপডেট হবে</span>
+                                <span class="text-[11px] text-slate-400">{{ __('Strip and box prices update automatically') }}</span>
                             </div>
                         </div>
 
@@ -503,23 +503,23 @@
                                 @click="showAdvancedPricing = !showAdvancedPricing" 
                                 class="text-xs font-bold text-slate-600 hover:text-sky-700 flex items-center gap-1.5 cursor-pointer">
                                 <svg class="w-4 h-4 transition-transform duration-200" :class="showAdvancedPricing ? 'rotate-90 text-sky-600' : ''" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
-                                <span>অতিরিক্ত মূল্য সেটিংস (ট্যাক্স, পাইকারি দর, ডিলার দর)</span>
-                                <span class="text-[10px] text-slate-400 font-normal">(প্রয়োজন হলে ক্লিক করুন)</span>
+                                <span>{{ __('Advanced Pricing Settings (Tax, Wholesale, Dealer)') }}</span>
+                                <span class="text-[10px] text-slate-400 font-normal">{{ __('(Click if needed)') }}</span>
                             </button>
 
                             <div x-show="showAdvancedPricing" x-collapse class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3 pt-3 border-t border-slate-100 bg-slate-50/70 p-3.5 rounded-lg">
                                 <div>
-                                    <label class="block text-xs font-semibold text-slate-700 mb-1">পাইকারি দর (Wholesale Price ৳)</label>
+                                    <label class="block text-xs font-semibold text-slate-700 mb-1">{{ __('Wholesale Price (৳)') }}</label>
                                     <input type="number" step="0.01" wire:model="wholesalePrice" placeholder="0.00" class="w-full text-xs font-mono font-bold rounded-lg border border-slate-300 py-1.5 px-2 bg-white" />
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-semibold text-slate-700 mb-1">ডিলার দর (Dealer Price ৳)</label>
+                                    <label class="block text-xs font-semibold text-slate-700 mb-1">{{ __('Dealer Price (৳)') }}</label>
                                     <input type="number" step="0.01" wire:model="dealerPrice" placeholder="0.00" class="w-full text-xs font-mono font-bold rounded-lg border border-slate-300 py-1.5 px-2 bg-white" />
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-semibold text-slate-700 mb-1">ভ্যাট / ট্যাক্স (Tax / VAT)</label>
+                                    <label class="block text-xs font-semibold text-slate-700 mb-1">{{ __('Tax / VAT') }}</label>
                                     <select wire:model.live="taxId" class="w-full text-xs rounded-lg border border-slate-300 py-1.5 px-2 bg-white">
-                                        <option value="">ট্যাক্স নেই (0%)</option>
+                                        <option value="">{{ __('No Tax (0%)') }}</option>
                                         @foreach ($taxes as $t)
                                             <option value="{{ $t->id }}">{{ $t->name }} ({{ $t->rate }}%)</option>
                                         @endforeach
@@ -529,101 +529,216 @@
                         </div>
                     </div>
 
-                    <!-- 3. Initial Stock, Batch & Storage -->
+                    <!-- 3. Initial Stock, Batch & Expiry Management -->
                     <div class="bg-white rounded-lg p-5 border border-slate-200 shadow-xs space-y-4">
-                        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
                             <div class="flex items-center gap-2">
-                                <span class="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-xs">৩</span>
+                                <span class="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-xs">3</span>
                                 <div>
-                                    <h3 class="font-bold text-sm text-slate-900">প্রারম্ভিক স্টক ও মেয়াদ (Initial Stock & Expiry)</h3>
-                                    <p class="text-[11px] text-slate-500">দোকানের বর্তমান মজুদ, মেয়াদোত্তীর্ণ তারিখ ও র‍্যাক লোকেশন</p>
+                                    <h3 class="font-bold text-sm text-slate-900">{{ __('Initial Stock, Batches & Expiry') }}</h3>
+                                    <p class="text-[11px] text-slate-500">{{ __('Log initial stock on hand, batch number and expiry date when registering medicine') }}</p>
                                 </div>
                             </div>
                             
-                            <!-- Stock Type Selector Pill -->
-                            <div class="inline-flex rounded-lg border border-slate-200 p-0.5 bg-slate-100 text-xs">
-                                <button 
-                                    type="button" 
-                                    wire:click="$set('stockType', 'Single')" 
-                                    class="px-3 py-1 rounded-md font-bold text-xs transition cursor-pointer {{ $stockType === 'Single' ? 'bg-white text-sky-800 shadow-2xs' : 'text-slate-600 hover:text-slate-900' }}">
-                                    সিঙ্গেল স্টক
-                                </button>
-                                <button 
-                                    type="button" 
-                                    wire:click="$set('stockType', 'Batch')" 
-                                    class="px-3 py-1 rounded-md font-bold text-xs transition cursor-pointer {{ $stockType === 'Batch' ? 'bg-white text-sky-800 shadow-2xs' : 'text-slate-600 hover:text-slate-900' }}">
-                                    ব্যাচ ভিত্তিক
-                                </button>
-                            </div>
+                            <!-- Opening Stock Toggle Switch -->
+                            <label class="inline-flex items-center gap-2 cursor-pointer select-none bg-slate-100 hover:bg-slate-200/80 px-3 py-1.5 rounded-lg border border-slate-200 transition">
+                                <input type="checkbox" wire:model.live="hasOpeningStock" class="w-4 h-4 text-sky-600 rounded border-slate-300 focus:ring-sky-500 cursor-pointer" />
+                                <span class="text-xs font-bold text-slate-800">{{ __('Add Opening Stock') }}</span>
+                            </label>
                         </div>
 
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                            <!-- Quantity -->
-                            <div>
-                                <label class="block text-xs font-bold text-slate-800 mb-1">প্রারম্ভিক মজুদ (Stock Qty)</label>
-                                <div class="flex items-center">
-                                    <input 
-                                        type="number" 
-                                        min="0" 
-                                        wire:model="quantity" 
-                                        placeholder="EX: 100" 
-                                        class="w-full text-xs font-mono font-bold text-slate-900 rounded-lg border border-slate-300 py-2 px-3 focus:border-sky-600" 
-                                    />
+                        @if ($hasOpeningStock)
+                            <div class="space-y-3">
+                                @php
+                                    $totalOpeningPieces = 0;
+                                    $totalOpeningCost = 0;
+                                    $totalOpeningSales = 0;
+                                @endphp
+
+                                @foreach ($initialBatches as $bIndex => $bRow)
+                                    @php
+                                        $selectedUnitId = (int) ($bRow['unit_id'] ?? $baseUnitId);
+                                        $uMultiplier = 1;
+                                        if ($selectedUnitId !== (int) $baseUnitId) {
+                                            $pack = collect($packagingUnits)->firstWhere('unit_id', $selectedUnitId);
+                                            if ($pack) {
+                                                $uMultiplier = (int) ($pack['multiplier'] ?? 1);
+                                            }
+                                        }
+                                        $rowQty = (int) ($bRow['quantity'] ?? 0);
+                                        $rowBasePieces = $rowQty * $uMultiplier;
+                                        $rowBuyRate = (float) (!empty($bRow['purchase_price']) && $bRow['purchase_price'] > 0 ? $bRow['purchase_price'] : ($purchasePrice * $uMultiplier));
+                                        $rowMrpRate = (float) (!empty($bRow['mrp_price']) && $bRow['mrp_price'] > 0 ? $bRow['mrp_price'] : ($mrpPrice * $uMultiplier));
+                                        
+                                        $rowTotalBuy = $rowQty * $rowBuyRate;
+                                        $rowTotalMrp = $rowQty * $rowMrpRate;
+
+                                        $totalOpeningPieces += $rowBasePieces;
+                                        $totalOpeningCost += $rowTotalBuy;
+                                        $totalOpeningSales += $rowTotalMrp;
+                                    @endphp
+
+                                    <div wire:key="init-batch-row-{{ $bIndex }}" class="p-4 rounded-xl border border-indigo-100 bg-gradient-to-r from-slate-50 to-indigo-50/20 shadow-2xs space-y-3">
+                                        <div class="flex items-center justify-between border-b border-slate-200/70 pb-2">
+                                            <div class="flex items-center gap-2">
+                                                <span class="px-2 py-0.5 rounded bg-indigo-600 text-white font-bold text-[10px] uppercase tracking-wider">
+                                                    {{ __('Batch #') }}{{ $bIndex + 1 }}
+                                                </span>
+                                                <span class="text-xs font-bold text-slate-800">
+                                                    {{ !empty($bRow['batch_number']) ? $bRow['batch_number'] : __('New Batch') }}
+                                                </span>
+                                            </div>
+
+                                            <div class="flex items-center gap-2">
+                                                @if ($rowBasePieces > 0)
+                                                    <span class="text-[11px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full border border-emerald-200">
+                                                        {{ __('Total =') }} {{ $rowBasePieces }} {{ __('Pcs') }}
+                                                    </span>
+                                                @endif
+                                                @if (count($initialBatches) > 1)
+                                                    <button 
+                                                        type="button" 
+                                                        wire:click="removeBatchRow({{ $bIndex }})" 
+                                                        class="text-rose-500 hover:text-rose-700 hover:bg-rose-50 p-1 rounded transition text-xs font-bold cursor-pointer"
+                                                        title="{{ __('Delete Batch') }}"
+                                                    >
+                                                        ✕ {{ __('Delete') }}
+                                                    </button>
+                                                @endif
+                                            </div>
+                                        </div>
+
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                                            <!-- 1. Batch Number with Auto-gen -->
+                                            <div>
+                                                <div class="flex items-center justify-between mb-1">
+                                                    <label class="block text-xs font-bold text-slate-800">{{ __('Batch Number (Batch No)') }} <span class="text-rose-500">*</span></label>
+                                                    <button type="button" wire:click="generateBatchNumber({{ $bIndex }})" class="text-[10px] font-bold text-sky-600 hover:text-sky-800 cursor-pointer">
+                                                        {{ __('⚡ Auto') }}
+                                                    </button>
+                                                </div>
+                                                <input 
+                                                    type="text" 
+                                                    wire:model="initialBatches.{{ $bIndex }}.batch_number" 
+                                                    placeholder="e.g. B-2026-10" 
+                                                    class="w-full text-xs font-mono font-bold uppercase rounded-lg border border-slate-300 py-2 px-2.5 focus:border-sky-600 bg-white" 
+                                                />
+                                            </div>
+
+                                            <!-- 2. Unit & Quantity -->
+                                            <div>
+                                                <label class="block text-xs font-bold text-slate-800 mb-1">{{ __('Quantity & Unit') }} <span class="text-rose-500">*</span></label>
+                                                <div class="flex items-center gap-1.5">
+                                                    <input 
+                                                        type="number" 
+                                                        min="1" 
+                                                        wire:model.live.debounce.300ms="initialBatches.{{ $bIndex }}.quantity" 
+                                                        placeholder="Qty" 
+                                                        class="w-20 text-xs font-mono font-bold text-slate-900 rounded-lg border border-slate-300 py-2 px-2 text-center bg-white focus:border-sky-600" 
+                                                    />
+                                                    <select wire:model.live="initialBatches.{{ $bIndex }}.unit_id" class="flex-1 text-xs font-semibold rounded-lg border border-slate-300 py-2 px-2 bg-white focus:border-sky-600">
+                                                        @foreach ($units as $u)
+                                                            <option value="{{ $u->id }}">
+                                                                {{ $u->name }} ({{ $u->short_code }})
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <!-- 3. Expiry Date with 1-Click Chips -->
+                                            <div class="sm:col-span-2 lg:col-span-2">
+                                                <div class="flex items-center justify-between mb-1">
+                                                    <label class="block text-xs font-bold text-rose-700">{{ __('Expiry Date') }} <span class="text-rose-500">*</span></label>
+                                                    <div class="flex items-center gap-1">
+                                                        <button type="button" wire:click="setBatchExpiryPreset({{ $bIndex }}, '1 year')" class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-200 text-slate-700 hover:bg-sky-100 hover:text-sky-800 cursor-pointer">{{ __('+1 Year') }}</button>
+                                                        <button type="button" wire:click="setBatchExpiryPreset({{ $bIndex }}, '2 years')" class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-200 text-slate-700 hover:bg-sky-100 hover:text-sky-800 cursor-pointer">{{ __('+2 Years') }}</button>
+                                                        <button type="button" wire:click="setBatchExpiryPreset({{ $bIndex }}, '3 years')" class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-200 text-slate-700 hover:bg-sky-100 hover:text-sky-800 cursor-pointer">{{ __('+3 Years') }}</button>
+                                                    </div>
+                                                </div>
+                                                <input 
+                                                    type="date" 
+                                                    wire:model="initialBatches.{{ $bIndex }}.expiry_date" 
+                                                    class="w-full text-xs font-bold text-rose-600 rounded-lg border border-rose-300 focus:border-rose-500 focus:ring-rose-500/20 py-2 px-2.5 bg-white" 
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <!-- Extra Batch Details (Mfg Date & Rack) -->
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-200/50">
+                                            <div class="flex items-center gap-2">
+                                                <label class="text-[11px] font-semibold text-slate-600 whitespace-nowrap">{{ __('Manufacturing Date (Mfg):') }}</label>
+                                                <input 
+                                                    type="date" 
+                                                    wire:model="initialBatches.{{ $bIndex }}.manufacturing_date" 
+                                                    class="flex-1 text-xs rounded-lg border border-slate-300 py-1.5 px-2 bg-white" 
+                                                />
+                                            </div>
+                                            <div class="flex items-center gap-2">
+                                                <label class="text-[11px] font-semibold text-slate-600 whitespace-nowrap">{{ __('Rack Location:') }}</label>
+                                                <input 
+                                                    type="text" 
+                                                    wire:model="initialBatches.{{ $bIndex }}.rack_location" 
+                                                    placeholder="e.g. Rack A-1, Drawer 3" 
+                                                    class="flex-1 text-xs font-bold text-slate-800 rounded-lg border border-slate-300 py-1.5 px-2 bg-white" 
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+
+                                <!-- Add Another Batch Button & Total Summary Card -->
+                                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
+                                    <button 
+                                        type="button" 
+                                        wire:click="addBatchRow" 
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold shadow-xs transition cursor-pointer self-start sm:self-auto"
+                                    >
+                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                                        <span>{{ __('+ Add Another Batch') }}</span>
+                                    </button>
+
+                                    <div class="flex items-center gap-3 text-xs">
+                                        <div class="text-right">
+                                            <span class="text-slate-500 text-[11px] block">{{ __('Total Opening Stock:') }}</span>
+                                            <span class="font-mono font-black text-sky-800 text-sm">{{ $totalOpeningPieces }} {{ __('Pcs') }}</span>
+                                        </div>
+                                        <div class="text-right border-l border-slate-200 pl-3">
+                                            <span class="text-slate-500 text-[11px] block">{{ __('Total Opening Cost Valuation:') }}</span>
+                                            <span class="font-mono font-bold text-slate-800">৳{{ number_format($totalOpeningCost, 2) }}</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-
-                            <!-- Expiry Date -->
-                            <div>
-                                <label class="block text-xs font-bold text-slate-800 mb-1">মেয়াদোত্তীর্ণ তারিখ (Expiry Date)</label>
-                                <input 
-                                    type="date" 
-                                    wire:model="expireDate" 
-                                    class="w-full text-xs font-bold text-rose-600 rounded-lg border border-slate-300 py-2 px-2.5 focus:border-sky-600 bg-white" 
-                                />
+                        @else
+                            <div class="p-6 text-center bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                                <div class="text-2xl">📦</div>
+                                <div class="font-bold text-xs text-slate-700">{{ __('No initial stock currently logged') }}</div>
+                                <p class="text-[11px] text-slate-500 max-w-md mx-auto">{{ __('You can receive stock later via Purchase Inward (GRN) or add initial inventory batches right now.') }}</p>
+                                <button 
+                                    type="button" 
+                                    wire:click="$set('hasOpeningStock', true)" 
+                                    class="inline-flex items-center gap-1.5 px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-lg text-xs transition cursor-pointer shadow-xs"
+                                >
+                                    {{ __('+ Add Initial Stock & Batches') }}
+                                </button>
                             </div>
+                        @endif
 
-                            <!-- Batch Number (if Batch or optional) -->
+                        <!-- Min Stock Alert Setting -->
+                        <div class="pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <div>
-                                <label class="block text-xs font-semibold text-slate-700 mb-1">ব্যাচ নম্বর (Batch No)</label>
-                                <input 
-                                    type="text" 
-                                    wire:model="batchNumber" 
-                                    placeholder="e.g. B-2026-09" 
-                                    class="w-full text-xs font-mono font-bold uppercase rounded-lg border border-slate-300 py-2 px-3 focus:border-sky-600" 
-                                />
+                                <label class="block text-xs font-bold text-slate-800">{{ __('Low Stock Reorder Alert') }}</label>
+                                <span class="text-[11px] text-slate-400">{{ __('System will generate requisition alerts when physical stock drops below this threshold') }}</span>
                             </div>
-
-                            <!-- Shelf / Rack Location -->
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-700 mb-1">র‍্যাক / ড্রয়ার (Shelf/Rack)</label>
-                                <input 
-                                    type="text" 
-                                    wire:model="rackLocation" 
-                                    placeholder="e.g. Rack A-1, Drawer 3" 
-                                    class="w-full text-xs font-bold text-slate-800 rounded-lg border border-slate-300 py-2 px-3 focus:border-sky-600" 
-                                />
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-100">
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-700 mb-1">কম স্টক সতর্কতা (Min Stock Alert)</label>
+                            <div class="flex items-center gap-2">
                                 <input 
                                     type="number" 
+                                    min="0" 
                                     wire:model="minStockAlert" 
-                                    placeholder="20" 
-                                    class="w-full text-xs font-bold text-rose-600 rounded-lg border border-slate-300 py-1.5 px-3" 
+                                    class="w-24 text-xs font-bold text-rose-600 rounded-lg border border-slate-300 py-1.5 px-3 text-center bg-white" 
                                 />
-                                <span class="text-[10px] text-slate-400">স্টক এই পরিমাণের নিচে নামলে সতর্কতা দেখাবে</span>
-                            </div>
-
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-700 mb-1">ম্যানুফ্যাকচারিং তারিখ (Mfg Date)</label>
-                                <input 
-                                    type="date" 
-                                    wire:model="manufacturingDate" 
-                                    class="w-full text-xs rounded-lg border border-slate-300 py-1.5 px-2.5 bg-white" 
-                                />
+                                <span class="text-xs font-bold text-slate-600">{{ __('Pcs') }}</span>
                             </div>
                         </div>
                     </div>
@@ -636,14 +751,14 @@
                     <div class="rounded-lg p-5 shadow-sm space-y-3.5 border border-sky-700" style="background-color: #0284c7 !important; color: #ffffff !important;">
                         <div class="flex items-center justify-between">
                             <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded text-white" style="background-color: rgba(255,255,255,0.2) !important;">
-                                লাইভ প্রিভিউ (Live Preview)
+                                {{ __('Live Preview') }}
                             </span>
                             <span class="text-xs font-mono font-bold text-sky-100">{{ $stockType }} Stock</span>
                         </div>
 
                         <div>
                             <h4 class="text-lg font-black tracking-tight leading-tight text-white">
-                                {{ $name ? $name : 'Medicine Brand Name' }}
+                                {{ $name ? $name : __('Medicine Brand Name') }}
                             </h4>
                             <div class="flex items-center gap-2 mt-1 text-xs text-sky-100 font-semibold">
                                 @if ($strength) 
@@ -658,25 +773,53 @@
 
                         <div class="pt-3 border-t border-sky-500/50 grid grid-cols-2 gap-2 text-xs">
                             <div class="rounded p-2" style="background-color: rgba(255,255,255,0.15) !important;">
-                                <span class="text-[10px] text-sky-100 block">১ পিসের বিক্রয়মূল্য</span>
+                                <span class="text-[10px] text-sky-100 block">{{ __('1-Piece Sales Price') }}</span>
                                 <span class="text-sm font-black font-mono text-white">৳{{ number_format((float)$mrpPrice, 2) }}</span>
                             </div>
                             <div class="rounded p-2" style="background-color: rgba(255,255,255,0.15) !important;">
-                                <span class="text-[10px] text-sky-100 block">১ পিসের ক্রয়মূল্য</span>
+                                <span class="text-[10px] text-sky-100 block">{{ __('1-Piece Buy Price') }}</span>
                                 <span class="text-sm font-bold font-mono text-white">৳{{ number_format((float)$purchasePrice, 2) }}</span>
                             </div>
                         </div>
 
                         @if ($manufacturers->firstWhere('id', $manufacturerId))
                             <div class="text-[11px] text-sky-100 flex items-center justify-between pt-1">
-                                <span>কোম্পানি:</span>
+                                <span>{{ __('Company:') }}</span>
                                 <span class="font-bold text-white">{{ $manufacturers->firstWhere('id', $manufacturerId)->name }}</span>
+                            </div>
+                        @endif
+
+                        @if ($hasOpeningStock && !empty($initialBatches))
+                            @php
+                                $prevPcs = 0;
+                                foreach ($initialBatches as $ib) {
+                                    $uId = (int) ($ib['unit_id'] ?? $baseUnitId);
+                                    $m = 1;
+                                    if ($uId !== (int) $baseUnitId) {
+                                        $pUnit = collect($packagingUnits)->firstWhere('unit_id', $uId);
+                                        if ($pUnit) $m = (int) ($pUnit['multiplier'] ?? 1);
+                                    }
+                                    $prevPcs += ((int) ($ib['quantity'] ?? 0)) * $m;
+                                }
+                                $firstExp = !empty($initialBatches[0]['expiry_date']) ? $initialBatches[0]['expiry_date'] : null;
+                            @endphp
+                            <div class="pt-2 border-t border-sky-500/40 text-[11px] space-y-1">
+                                <div class="flex items-center justify-between text-sky-100">
+                                    <span>{{ __('Initial Total Stock:') }}</span>
+                                    <span class="font-bold text-white font-mono bg-white/20 px-2 py-0.5 rounded">{{ $prevPcs }} {{ __('Pcs') }}</span>
+                                </div>
+                                @if ($firstExp)
+                                    <div class="flex items-center justify-between text-sky-100">
+                                        <span>{{ __('Expiry Date:') }}</span>
+                                        <span class="font-bold text-amber-200 font-mono">{{ date('d M, Y', strtotime($firstExp)) }}</span>
+                                    </div>
+                                @endif
                             </div>
                         @endif
 
                         @if ($rackLocation)
                             <div class="text-[11px] text-sky-100 flex items-center justify-between">
-                                <span>র‍্যাক লোকেশন:</span>
+                                <span>{{ __('Rack Location:') }}</span>
                                 <span class="font-bold text-amber-200">{{ $rackLocation }}</span>
                             </div>
                         @endif
@@ -685,22 +828,22 @@
                     <!-- Barcode Generation -->
                     <div class="bg-white rounded-lg p-4 border border-slate-200 shadow-xs space-y-3">
                         <div class="flex items-center justify-between">
-                            <label class="text-xs font-bold text-slate-800">বারকোড (Barcode / EAN-13)</label>
+                            <label class="text-xs font-bold text-slate-800">{{ __('Barcode (Barcode / EAN-13)') }}</label>
                             <button type="button" wire:click="generateBarcode" class="text-[11px] text-sky-700 hover:text-sky-900 font-bold flex items-center gap-1 cursor-pointer">
-                                ⚡ অটো জেনারেট
+                                {{ __('⚡ Auto Generate') }}
                             </button>
                         </div>
                         <input 
                             type="text" 
                             wire:model="barcode" 
-                            placeholder="বারকোড স্ক্যান করুন বা লিখুন..." 
+                            placeholder="{{ __('Scan or type barcode...') }}" 
                             class="w-full font-mono text-xs font-bold rounded-lg border border-slate-300 py-2 px-3" 
                         />
                     </div>
 
                     <!-- Medicine Photo Upload (Compact) -->
                     <div class="bg-white rounded-lg p-4 border border-slate-200 shadow-xs space-y-2.5">
-                        <label class="block text-xs font-bold text-slate-800">ওষুধের ছবি (Pack Photo)</label>
+                        <label class="block text-xs font-bold text-slate-800">{{ __('Medicine Photo (Pack Photo)') }}</label>
                         <div class="flex items-center gap-3">
                             <div class="w-16 h-16 rounded-lg border-2 border-dashed border-slate-200 bg-slate-50 flex items-center justify-center shrink-0 overflow-hidden">
                                 @if ($imageFile)
@@ -713,7 +856,7 @@
                             </div>
                             <div class="flex-1">
                                 <label class="px-3 py-1.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold rounded-lg text-xs cursor-pointer shadow-2xs inline-block">
-                                    <span>ছবি বাছাই করুন</span>
+                                    <span>{{ __('Choose Photo') }}</span>
                                     <input type="file" wire:model="imageFile" accept="image/*" class="hidden" />
                                 </label>
                                 <span class="text-[10px] text-slate-400 block mt-1">PNG, JPG (Max 2MB)</span>
@@ -724,19 +867,23 @@
 
                     <!-- Special Regulatory Badges -->
                     <div class="bg-white rounded-lg p-4 border border-slate-200 shadow-xs space-y-2.5">
-                        <label class="block text-xs font-bold text-slate-800">বিশেষ সতর্কতা ট্যাগ</label>
+                        <label class="block text-xs font-bold text-slate-800">{{ __('Inventory & Special Settings') }}</label>
                         <div class="space-y-2">
+                            <label class="flex items-center gap-2 cursor-pointer text-xs text-sky-900 font-bold bg-sky-50/80 p-2 rounded-lg border border-sky-200">
+                                <input type="checkbox" wire:model.live="hasBatchTracking" class="rounded text-sky-600 focus:ring-sky-500 w-4 h-4" />
+                                <span>{{ __('🏷️ Track Batches & Expiry') }}</span>
+                            </label>
                             <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-700 font-medium">
                                 <input type="checkbox" wire:model="isColdChain" class="rounded text-sky-600 focus:ring-sky-500" />
-                                <span>❄️ কোল্ড চেইন (ফ্রিজে সংরক্ষণযোগ্য)</span>
+                                <span>{{ __('❄️ Cold Chain (Refrigerator Required)') }}</span>
                             </label>
                             <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-700 font-medium">
                                 <input type="checkbox" wire:model="isNarcotic" class="rounded text-sky-600 focus:ring-sky-500" />
-                                <span>💊 নারকোটিক / সিডিউল-এইচ</span>
+                                <span>{{ __('💊 Narcotic / Schedule-H') }}</span>
                             </label>
                             <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-700 font-medium">
                                 <input type="checkbox" wire:model="requiresPrescription" class="rounded text-sky-600 focus:ring-sky-500" />
-                                <span>📋 প্রেসক্রিপশন আবশ্যক (Rx Only)</span>
+                                <span>{{ __('📋 Prescription Required (Rx Only)') }}</span>
                             </label>
                         </div>
                     </div>
@@ -749,14 +896,14 @@
                             class="w-full py-3 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-lg text-sm transition shadow-xs flex items-center justify-center gap-2 cursor-pointer">
                             <svg wire:loading.remove class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                             <svg wire:loading class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
-                            <span>{{ $editingProductId ? 'ওষুধ আপডেট করুন (Update)' : '💾 ওষুধ সংরক্ষণ করুন (Save Medicine)' }}</span>
+                            <span>{{ $editingProductId ? __('Update Medicine') : __('💾 Save Medicine') }}</span>
                         </button>
 
                         <a 
                             href="{{ route('products.index') }}" 
                             wire:navigate 
                             class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg text-xs transition border border-slate-200 text-center block">
-                            বাতিল করুন ও তালিকায় ফিরুন (Cancel)
+                            {{ __('Cancel & Return to List') }}
                         </a>
                     </div>
                 </div>
@@ -801,19 +948,521 @@
     @endif
 
     @if ($tab === 'bulk')
-        <!-- Bulk Upload Form -->
-        <div class="bg-white rounded-lg p-6 border border-slate-200 shadow-xs max-w-xl space-y-4">
-            <h3 class="font-bold text-base text-slate-900">Bulk Upload Medicines (CSV)</h3>
-            <p class="text-xs text-slate-500">Upload CSV file with columns: [Medicine Name, MRP Price, Purchase Rate]</p>
+        <!-- TRUE EXCEL SPREADSHEET STUDIO -->
+        <div class="space-y-4" x-data="{
+            activeCell: 'A1',
+            activeVal: '',
+            pasteModal: false,
+            pastedText: '',
+            updateActive(cell, val) {
+                this.activeCell = cell;
+                this.activeVal = val || '';
+            },
+            handleGridPaste(e) {
+                let text = (e.clipboardData || window.clipboardData).getData('text');
+                if (text && text.includes('\t')) {
+                    e.preventDefault();
+                    $wire.importPastedTsv(text);
+                }
+            }
+        }">
+            
+            <!-- Excel Window Container -->
+            <div class="bg-white rounded-xl border border-slate-300 shadow-md overflow-hidden font-sans">
+                
+                <!-- 1. Excel Top Green Title Bar -->
+                <div class="bg-[#107c41] text-white px-4 py-2 flex items-center justify-between select-none">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-6 h-6 rounded bg-white text-[#107c41] flex items-center justify-center font-black text-xs shadow-xs">
+                            X
+                        </div>
+                        <div class="flex items-center space-x-2 text-xs">
+                            <span class="font-bold">Pharmacy_Products_Catalog.xlsx</span>
+                            <span class="text-emerald-200">- Excel Studio</span>
+                            <span class="bg-emerald-800 text-[10px] font-bold px-1.5 py-0.5 rounded text-emerald-200">AutoSave ON</span>
+                        </div>
+                    </div>
 
-            <form wire:submit="processBulkUpload" class="space-y-4">
-                <input type="file" wire:model="csvFile" class="block w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-sky-50 file:text-sky-700 hover:file:bg-sky-100 border border-slate-200 rounded-lg p-1.5 bg-slate-50" />
-                @error('csvFile') <span class="text-[11px] text-rose-500 block">{{ $message }}</span> @enderror
+                    <div class="flex items-center space-x-2">
+                        <button 
+                            type="button" 
+                            wire:click="$set('bulkMode', 'grid')" 
+                            class="px-2.5 py-1 text-xs rounded transition {{ $bulkMode === 'grid' ? 'bg-white text-[#107c41] font-bold shadow-xs' : 'text-white hover:bg-emerald-700' }}"
+                        >
+                            📊 Excel Spreadsheet
+                        </button>
+                        <button 
+                            type="button" 
+                            wire:click="$set('bulkMode', 'file')" 
+                            class="px-2.5 py-1 text-xs rounded transition {{ $bulkMode === 'file' ? 'bg-white text-[#107c41] font-bold shadow-xs' : 'text-white hover:bg-emerald-700' }}"
+                        >
+                            📁 CSV File Import
+                        </button>
+                    </div>
+                </div>
 
-                <button type="submit" class="w-full py-2 bg-sky-600 hover:bg-sky-700 text-white font-semibold rounded-lg text-xs transition shadow-xs cursor-pointer">
-                    Upload & Import Medicines
-                </button>
-            </form>
+                @if ($bulkMode === 'grid')
+                    <!-- 2. Excel Ribbon Toolbar -->
+                    <div class="bg-[#f3f4f6] border-b border-slate-300 p-2 flex flex-wrap items-center justify-between gap-2 text-xs select-none">
+                        
+                        <!-- Ribbon Action Groups -->
+                        <div class="flex flex-wrap items-center gap-1.5">
+                            
+                            <!-- Paste Button -->
+                            <button 
+                                type="button" 
+                                @click="pasteModal = true"
+                                class="px-2.5 py-1.5 bg-white border border-slate-300 hover:bg-slate-50 hover:border-emerald-600 rounded flex items-center gap-1.5 font-semibold text-slate-700 shadow-2xs cursor-pointer"
+                                title="Paste from Excel or Google Sheets (Ctrl+V)"
+                            >
+                                <svg class="w-4 h-4 text-emerald-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                                <span>Paste from Excel</span>
+                            </button>
+
+                            <div class="h-5 w-px bg-slate-300 mx-0.5"></div>
+
+                            <!-- Row Controls -->
+                            <button 
+                                type="button" 
+                                wire:click="addBulkRow" 
+                                class="px-2.5 py-1.5 bg-white border border-slate-300 hover:bg-slate-50 hover:border-emerald-600 rounded flex items-center gap-1 text-slate-700 font-semibold shadow-2xs cursor-pointer"
+                            >
+                                <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" /></svg>
+                                +1 Row
+                            </button>
+
+                            <button 
+                                type="button" 
+                                wire:click="addMultipleBulkRows(10)" 
+                                class="px-2.5 py-1.5 bg-white border border-slate-300 hover:bg-slate-50 hover:border-emerald-600 rounded flex items-center gap-1 text-slate-700 font-semibold shadow-2xs cursor-pointer"
+                            >
+                                +10 Rows
+                            </button>
+
+                            <div class="h-5 w-px bg-slate-300 mx-0.5"></div>
+
+                            <!-- Tools -->
+                            <button 
+                                type="button" 
+                                wire:click="loadSampleBulkData" 
+                                class="px-2.5 py-1.5 bg-emerald-50 border border-emerald-300 text-[#107c41] hover:bg-emerald-100 rounded font-semibold flex items-center gap-1 cursor-pointer"
+                            >
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                                Fill Demo Medicines
+                            </button>
+
+                            <button 
+                                type="button" 
+                                wire:click="clearBulkRows" 
+                                class="px-2 py-1.5 text-rose-600 hover:bg-rose-50 rounded transition cursor-pointer"
+                            >
+                                Clear Sheet
+                            </button>
+                        </div>
+
+                        <!-- Main Import Button -->
+                        <div class="flex items-center gap-2">
+                            <button 
+                                type="button" 
+                                wire:click="downloadSampleCsv"
+                                class="px-3 py-1.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded font-medium flex items-center gap-1 text-xs cursor-pointer"
+                            >
+                                <svg class="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                                Template (.CSV)
+                            </button>
+
+                            <button 
+                                type="button" 
+                                wire:click="saveBulkGrid" 
+                                wire:loading.attr="disabled"
+                                class="px-5 py-1.5 bg-[#107c41] hover:bg-[#0b5c30] text-white font-bold rounded shadow-sm transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                            >
+                                <svg wire:loading.remove class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>
+                                <span wire:loading.remove>Save Sheet to Database</span>
+                                <span wire:loading>Saving Medicines...</span>
+                            </button>
+                        </div>
+
+                    </div>
+
+                    <!-- 3. Excel Formula Bar (fx) -->
+                    <div class="bg-white border-b border-slate-300 px-3 py-1.5 flex items-center gap-2 text-xs">
+                        <div class="w-16 px-2 py-1 bg-slate-100 border border-slate-300 rounded text-center font-mono font-bold text-slate-700 select-none shadow-inner" x-text="activeCell">
+                            A1
+                        </div>
+                        <div class="text-slate-400 font-serif italic text-sm font-bold select-none px-1">
+                            fx
+                        </div>
+                        <div class="flex-1 bg-white border border-slate-200 rounded px-2.5 py-1 font-mono text-xs text-slate-800" x-text="activeVal || 'Ready for data entry...'">
+                        </div>
+                    </div>
+
+                    <!-- 4. Excel Spreadsheet Grid with Authentic Grid Headers & Cells -->
+                    <div class="overflow-x-auto max-h-[580px] bg-slate-200" @paste="handleGridPaste($event)">
+                        <table class="w-full border-collapse text-xs bg-white">
+                            <!-- Excel Column Headers (A, B, C, D...) -->
+                            <thead class="sticky top-0 z-20 select-none">
+                                <tr class="bg-[#f3f4f6] text-slate-700 text-center font-semibold text-[11px] border-b border-slate-300">
+                                    <th class="w-12 p-1.5 bg-[#e5e7eb] border-r border-slate-300 text-slate-500 font-mono text-[10px]">#</th>
+                                    <th class="p-1.5 min-w-[230px] border-r border-slate-300 bg-[#f3f4f6]">
+                                        <div class="text-[10px] text-slate-400 font-mono font-normal">A</div>
+                                        <div class="font-bold text-slate-800">Medicine Name <span class="text-rose-500">*</span></div>
+                                    </th>
+                                    <th class="p-1.5 min-w-[160px] border-r border-slate-300 bg-[#f3f4f6]">
+                                        <div class="text-[10px] text-slate-400 font-mono font-normal">B</div>
+                                        <div class="font-bold text-slate-800">Generic Molecule</div>
+                                    </th>
+                                    <th class="p-1.5 min-w-[130px] border-r border-slate-300 bg-[#f3f4f6]">
+                                        <div class="text-[10px] text-slate-400 font-mono font-normal">C</div>
+                                        <div class="font-bold text-slate-800">Category</div>
+                                    </th>
+                                    <th class="p-1.5 min-w-[160px] border-r border-slate-300 bg-[#f3f4f6]">
+                                        <div class="text-[10px] text-slate-400 font-mono font-normal">D</div>
+                                        <div class="font-bold text-slate-800">Company / Mfg</div>
+                                    </th>
+                                    <th class="p-1.5 min-w-[90px] border-r border-slate-300 bg-[#f3f4f6]">
+                                        <div class="text-[10px] text-slate-400 font-mono font-normal">E</div>
+                                        <div class="font-bold text-slate-800">Base Unit</div>
+                                    </th>
+                                    <th class="p-1.5 min-w-[110px] border-r border-slate-300 bg-[#f3f4f6]">
+                                        <div class="text-[10px] text-slate-400 font-mono font-normal">F</div>
+                                        <div class="font-bold text-slate-800">Purchase (৳)</div>
+                                    </th>
+                                    <th class="p-1.5 min-w-[110px] border-r border-slate-300 bg-[#f3f4f6]">
+                                        <div class="text-[10px] text-slate-400 font-mono font-normal">G</div>
+                                        <div class="font-bold text-slate-800">MRP / Sale (৳) <span class="text-rose-500">*</span></div>
+                                    </th>
+                                    <th class="p-1.5 min-w-[90px] border-r border-slate-300 bg-[#f3f4f6]">
+                                        <div class="text-[10px] text-slate-400 font-mono font-normal">H</div>
+                                        <div class="font-bold text-slate-800">Stock Qty</div>
+                                    </th>
+                                    <th class="p-1.5 min-w-[120px] border-r border-slate-300 bg-[#f3f4f6]">
+                                        <div class="text-[10px] text-slate-400 font-mono font-normal">I</div>
+                                        <div class="font-bold text-slate-800">Batch No</div>
+                                    </th>
+                                    <th class="p-1.5 min-w-[130px] border-r border-slate-300 bg-[#f3f4f6]">
+                                        <div class="text-[10px] text-slate-400 font-mono font-normal">J</div>
+                                        <div class="font-bold text-slate-800">Expiry Date</div>
+                                    </th>
+                                    <th class="w-10 p-1.5 bg-[#e5e7eb] text-center font-bold text-slate-500">Del</th>
+                                </tr>
+                            </thead>
+                            
+                            <!-- Excel Rows & Cells -->
+                            <tbody class="divide-y divide-slate-300 bg-white font-sans">
+                                @foreach ($bulkRows as $index => $row)
+                                    @php $rowNum = $index + 1; @endphp
+                                    <tr class="hover:bg-emerald-50/30 transition group">
+                                        
+                                        <!-- Row Number Cell -->
+                                        <td class="p-1 text-center bg-[#f3f4f6] text-slate-500 font-mono text-[11px] border-r border-slate-300 select-none group-hover:bg-[#e5e7eb]">
+                                            {{ $rowNum }}
+                                        </td>
+
+                                        <!-- Cell A: Medicine Name -->
+                                        <td class="p-0 border-r border-slate-300 relative focus-within:ring-2 focus-within:ring-[#107c41] focus-within:z-10">
+                                            <input 
+                                                type="text" 
+                                                wire:model.lazy="bulkRows.{{ $index }}.name" 
+                                                @focus="updateActive('A{{ $rowNum }}', $el.value)"
+                                                @input="updateActive('A{{ $rowNum }}', $el.value)"
+                                                placeholder="Medicine Name..." 
+                                                class="w-full h-8 px-2.5 bg-transparent border-0 text-xs text-slate-900 font-medium placeholder-slate-300 focus:outline-none focus:bg-white"
+                                                style="border-radius: 0 !important; border: none !important; box-shadow: none !important;"
+                                            />
+                                        </td>
+
+                                        <!-- Cell B: Generic Molecule -->
+                                        <td class="p-0 border-r border-slate-300 relative focus-within:ring-2 focus-within:ring-[#107c41] focus-within:z-10">
+                                            <select 
+                                                wire:model.lazy="bulkRows.{{ $index }}.generic_id"
+                                                @focus="updateActive('B{{ $rowNum }}', $el.options[$el.selectedIndex]?.text)"
+                                                class="w-full h-8 px-2 bg-transparent border-0 text-xs text-slate-700 focus:outline-none focus:bg-white cursor-pointer"
+                                                style="border-radius: 0 !important; border: none !important; box-shadow: none !important;"
+                                            >
+                                                <option value="">(Select Generic)</option>
+                                                @foreach ($generics as $gen)
+                                                    <option value="{{ $gen->id }}">{{ $gen->name }}</option>
+                                                @endforeach
+                                            </select>
+                                        </td>
+
+                                        <!-- Cell C: Category -->
+                                        <td class="p-0 border-r border-slate-300 relative focus-within:ring-2 focus-within:ring-[#107c41] focus-within:z-10">
+                                            <select 
+                                                wire:model.lazy="bulkRows.{{ $index }}.category_id"
+                                                @focus="updateActive('C{{ $rowNum }}', $el.options[$el.selectedIndex]?.text)"
+                                                class="w-full h-8 px-2 bg-transparent border-0 text-xs text-slate-700 focus:outline-none focus:bg-white cursor-pointer"
+                                                style="border-radius: 0 !important; border: none !important; box-shadow: none !important;"
+                                            >
+                                                <option value="">(Category)</option>
+                                                @foreach ($categories as $cat)
+                                                    <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                                                @endforeach
+                                            </select>
+                                        </td>
+
+                                        <!-- Cell D: Manufacturer -->
+                                        <td class="p-0 border-r border-slate-300 relative focus-within:ring-2 focus-within:ring-[#107c41] focus-within:z-10">
+                                            <select 
+                                                wire:model.lazy="bulkRows.{{ $index }}.manufacturer_id"
+                                                @focus="updateActive('D{{ $rowNum }}', $el.options[$el.selectedIndex]?.text)"
+                                                class="w-full h-8 px-2 bg-transparent border-0 text-xs text-slate-700 focus:outline-none focus:bg-white cursor-pointer"
+                                                style="border-radius: 0 !important; border: none !important; box-shadow: none !important;"
+                                            >
+                                                <option value="">(Company)</option>
+                                                @foreach ($manufacturers as $mfg)
+                                                    <option value="{{ $mfg->id }}">{{ $mfg->name }}</option>
+                                                @endforeach
+                                            </select>
+                                        </td>
+
+                                        <!-- Cell E: Base Unit -->
+                                        <td class="p-0 border-r border-slate-300 relative focus-within:ring-2 focus-within:ring-[#107c41] focus-within:z-10">
+                                            <select 
+                                                wire:model.lazy="bulkRows.{{ $index }}.unit_id"
+                                                @focus="updateActive('E{{ $rowNum }}', $el.options[$el.selectedIndex]?.text)"
+                                                class="w-full h-8 px-2 bg-transparent border-0 text-xs text-slate-700 font-medium focus:outline-none focus:bg-white cursor-pointer"
+                                                style="border-radius: 0 !important; border: none !important; box-shadow: none !important;"
+                                            >
+                                                @foreach ($units as $u)
+                                                    <option value="{{ $u->id }}">{{ $u->name }}</option>
+                                                @endforeach
+                                            </select>
+                                        </td>
+
+                                        <!-- Cell F: Purchase Price -->
+                                        <td class="p-0 border-r border-slate-300 relative focus-within:ring-2 focus-within:ring-[#107c41] focus-within:z-10">
+                                            <input 
+                                                type="number" 
+                                                step="0.01" 
+                                                wire:model.lazy="bulkRows.{{ $index }}.purchase_price" 
+                                                @focus="updateActive('F{{ $rowNum }}', $el.value)"
+                                                @input="updateActive('F{{ $rowNum }}', $el.value)"
+                                                placeholder="0.00" 
+                                                class="w-full h-8 px-2.5 bg-transparent border-0 text-xs text-slate-800 text-right font-mono focus:outline-none focus:bg-white"
+                                                style="border-radius: 0 !important; border: none !important; box-shadow: none !important;"
+                                            />
+                                        </td>
+
+                                        <!-- Cell G: MRP Price -->
+                                        <td class="p-0 border-r border-slate-300 relative focus-within:ring-2 focus-within:ring-[#107c41] focus-within:z-10 bg-emerald-50/20">
+                                            <input 
+                                                type="number" 
+                                                step="0.01" 
+                                                wire:model.lazy="bulkRows.{{ $index }}.mrp_price" 
+                                                @focus="updateActive('G{{ $rowNum }}', $el.value)"
+                                                @input="updateActive('G{{ $rowNum }}', $el.value)"
+                                                placeholder="0.00" 
+                                                class="w-full h-8 px-2.5 bg-transparent border-0 text-xs text-emerald-800 font-bold text-right font-mono focus:outline-none focus:bg-white"
+                                                style="border-radius: 0 !important; border: none !important; box-shadow: none !important;"
+                                            />
+                                        </td>
+
+                                        <!-- Cell H: Stock Qty -->
+                                        <td class="p-0 border-r border-slate-300 relative focus-within:ring-2 focus-within:ring-[#107c41] focus-within:z-10">
+                                            <input 
+                                                type="number" 
+                                                wire:model.lazy="bulkRows.{{ $index }}.quantity" 
+                                                @focus="updateActive('H{{ $rowNum }}', $el.value)"
+                                                @input="updateActive('H{{ $rowNum }}', $el.value)"
+                                                placeholder="0" 
+                                                class="w-full h-8 px-2 bg-transparent border-0 text-xs text-slate-800 text-right font-mono focus:outline-none focus:bg-white"
+                                                style="border-radius: 0 !important; border: none !important; box-shadow: none !important;"
+                                            />
+                                        </td>
+
+                                        <!-- Cell I: Batch No -->
+                                        <td class="p-0 border-r border-slate-300 relative focus-within:ring-2 focus-within:ring-[#107c41] focus-within:z-10">
+                                            <input 
+                                                type="text" 
+                                                wire:model.lazy="bulkRows.{{ $index }}.batch_number" 
+                                                @focus="updateActive('I{{ $rowNum }}', $el.value)"
+                                                @input="updateActive('I{{ $rowNum }}', $el.value)"
+                                                placeholder="Auto batch" 
+                                                class="w-full h-8 px-2 bg-transparent border-0 text-[11px] font-mono text-slate-700 focus:outline-none focus:bg-white"
+                                                style="border-radius: 0 !important; border: none !important; box-shadow: none !important;"
+                                            />
+                                        </td>
+
+                                        <!-- Cell J: Expiry Date -->
+                                        <td class="p-0 border-r border-slate-300 relative focus-within:ring-2 focus-within:ring-[#107c41] focus-within:z-10">
+                                            <input 
+                                                type="date" 
+                                                wire:model.lazy="bulkRows.{{ $index }}.expiry_date" 
+                                                @focus="updateActive('J{{ $rowNum }}', $el.value)"
+                                                class="w-full h-8 px-2 bg-transparent border-0 text-[11px] text-slate-700 focus:outline-none focus:bg-white"
+                                                style="border-radius: 0 !important; border: none !important; box-shadow: none !important;"
+                                            />
+                                        </td>
+
+                                        <!-- Delete Cell -->
+                                        <td class="p-0 text-center bg-slate-50">
+                                            <button 
+                                                type="button" 
+                                                wire:click="removeBulkRow({{ $index }})" 
+                                                class="h-8 w-full text-slate-400 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center transition cursor-pointer font-bold"
+                                                title="Delete Row {{ $rowNum }}"
+                                            >
+                                                ✕
+                                            </button>
+                                        </td>
+
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- 5. Excel Bottom Status Bar -->
+                    <div class="bg-[#f3f4f6] border-t border-slate-300 px-3 py-1.5 flex flex-wrap items-center justify-between text-[11px] text-slate-600 select-none">
+                        <!-- Sheet Tabs -->
+                        <div class="flex items-center space-x-1">
+                            <span class="px-3 py-1 bg-white border-t-2 border-[#107c41] font-bold text-[#107c41] shadow-2xs rounded-t">
+                                Sheet1 (Products Catalog)
+                            </span>
+                            <span class="px-2 py-1 text-slate-400 font-bold hover:text-slate-600 cursor-pointer">+</span>
+                        </div>
+
+                        <!-- Real-time Status Metrics -->
+                        <div class="flex items-center space-x-4 font-mono">
+                            <span class="flex items-center gap-1.5 font-sans font-semibold text-emerald-700">
+                                <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+                                READY
+                            </span>
+                            <span>COUNT: <strong class="text-slate-900 font-bold">{{ count($bulkRows) }}</strong> rows</span>
+                            <span>FILLED: <strong class="text-[#107c41] font-bold">{{ count(array_filter($bulkRows, fn($r) => !empty(trim($r['name'] ?? '')))) }}</strong> items</span>
+                            <span>ZOOM: 100%</span>
+                        </div>
+                    </div>
+
+                    <!-- PASTE FROM EXCEL MODAL DIALOG -->
+                    <div x-show="pasteModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
+                        <div @click.away="pasteModal = false" class="bg-white rounded-2xl shadow-2xl border border-slate-300 w-full max-w-xl p-6 space-y-4">
+                            <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-8 h-8 rounded bg-emerald-100 text-[#107c41] flex items-center justify-center font-bold">
+                                        📋
+                                    </div>
+                                    <h3 class="text-base font-bold text-slate-900">Paste Table Data from Microsoft Excel</h3>
+                                </div>
+                                <button type="button" @click="pasteModal = false" class="text-slate-400 hover:text-slate-600 text-lg leading-none cursor-pointer">&times;</button>
+                            </div>
+
+                            <p class="text-xs text-slate-500">
+                                Select cells in your real Excel/Google Sheets, press <strong>Ctrl+C</strong> to copy, and paste (<strong>Ctrl+V</strong>) below:
+                            </p>
+
+                            <textarea 
+                                x-model="pastedText"
+                                rows="7" 
+                                placeholder="Paste Excel cells here (Medicine Name [Tab] MRP [Tab] Purchase [Tab] Qty...)"
+                                class="w-full text-xs font-mono p-3 border border-slate-300 rounded-xl focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/20 bg-slate-50 placeholder-slate-400"
+                            ></textarea>
+
+                            <div class="flex items-center justify-end gap-2 pt-2">
+                                <button type="button" @click="pasteModal = false" class="px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer">
+                                    Cancel
+                                </button>
+                                <button 
+                                    type="button" 
+                                    @click="$wire.importPastedTsv(pastedText); pasteModal = false; pastedText = '';" 
+                                    class="px-5 py-2 rounded-lg text-xs font-bold bg-[#107c41] hover:bg-[#0b5c30] text-white shadow-sm cursor-pointer"
+                                >
+                                    Import Pasted Rows
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                @endif
+
+                <!-- MODE 2: FILE UPLOAD -->
+                @if ($bulkMode === 'file')
+                    <div class="p-6 bg-slate-50 space-y-6">
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <!-- Upload Dropzone -->
+                            <div class="lg:col-span-2 bg-white rounded-xl border border-slate-200 p-6 shadow-xs space-y-5">
+                                <div>
+                                    <h3 class="font-bold text-sm text-slate-900">Upload CSV Spreadsheet File</h3>
+                                    <p class="text-xs text-slate-500">Upload your prepared medicine spreadsheet in .csv or .txt format</p>
+                                </div>
+
+                                <form wire:submit="processBulkUpload" class="space-y-4">
+                                    <div class="border-2 border-dashed border-slate-200 hover:border-emerald-500 rounded-2xl p-8 text-center bg-slate-50/60 transition space-y-3">
+                                        <div class="mx-auto h-12 w-12 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <label class="cursor-pointer">
+                                                <span class="text-sm font-bold text-emerald-700 hover:text-emerald-800 underline">Click to choose file</span>
+                                                <span class="text-xs text-slate-500"> or drag and drop</span>
+                                                <input type="file" wire:model="csvFile" class="hidden" accept=".csv,.txt" />
+                                            </label>
+                                            <p class="text-[11px] text-slate-400 mt-1">Supported formats: CSV, TXT (Max size: 5MB)</p>
+                                        </div>
+                                    </div>
+
+                                    @if ($csvFile)
+                                        <div class="p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center justify-between">
+                                            <div class="flex items-center gap-2">
+                                                <svg class="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                                <span class="font-semibold">{{ $csvFile->getClientOriginalName() }}</span>
+                                            </div>
+                                            <span class="text-[11px] text-slate-500">{{ round($csvFile->getSize() / 1024, 1) }} KB</span>
+                                        </div>
+                                    @endif
+
+                                    @error('csvFile') 
+                                        <div class="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs">
+                                            {{ $message }}
+                                        </div> 
+                                    @enderror
+
+                                    <div class="flex items-center justify-end gap-3 pt-2">
+                                        <button 
+                                            type="submit" 
+                                            wire:loading.attr="disabled"
+                                            class="w-full sm:w-auto px-6 py-2.5 bg-[#107c41] hover:bg-[#0b5c30] text-white font-bold rounded-lg text-xs shadow-sm transition cursor-pointer disabled:opacity-50"
+                                        >
+                                            <span wire:loading.remove>Upload & Process File</span>
+                                            <span wire:loading>Importing Records...</span>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <!-- CSV Column Guide Card -->
+                            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-xs space-y-4">
+                                <h4 class="font-bold text-xs uppercase tracking-wider text-slate-700">Column Format Guide</h4>
+                                <div class="space-y-2 text-xs">
+                                    <div class="p-2 rounded-lg bg-slate-50 border border-slate-200 font-mono text-[11px]">
+                                        <div class="font-bold text-slate-800">Columns:</div>
+                                        <div class="text-slate-600 mt-1">1. Medicine Name <span class="text-rose-500 font-bold">*</span></div>
+                                        <div class="text-slate-600">2. MRP Price <span class="text-rose-500 font-bold">*</span></div>
+                                        <div class="text-slate-600">3. Purchase Price</div>
+                                        <div class="text-slate-600">4. Opening Qty</div>
+                                        <div class="text-slate-600">5. Batch Number</div>
+                                        <div class="text-slate-600">6. Expiry Date (YYYY-MM-DD)</div>
+                                    </div>
+
+                                    <button 
+                                        type="button" 
+                                        wire:click="downloadSampleCsv" 
+                                        class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg text-xs transition cursor-pointer flex items-center justify-center gap-1.5"
+                                    >
+                                        <svg class="w-3.5 h-3.5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                                        Download Sample .CSV
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
+            </div>
         </div>
     @endif
 

@@ -5,15 +5,15 @@
                 <svg class="w-7 h-7 text-sky-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
                 </svg>
-                Sale List
+                {{ __('Sale List') }}
             </h1>
             <p class="text-sm text-slate-500 mt-1">
-                Comprehensive archive of POS transactions, customer invoices, and split settlements.
+                {{ __('Comprehensive archive of POS transactions, customer invoices, and split settlements.') }}
             </p>
         </div>
         <a href="{{ route('pos.terminal') }}" class="px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-lg text-sm transition shadow flex items-center gap-2" wire:navigate>
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-            Sale New (POS)
+            {{ __('Sale New (POS)') }}
         </a>
     </div>
 
@@ -24,7 +24,7 @@
                 <input 
                     type="text" 
                     wire:model.live.debounce.300ms="search"
-                    placeholder="Search by invoice no, customer name or phone..."
+                    placeholder="{{ __('Search by invoice no, customer name or phone...') }}"
                     class="w-full pl-10 pr-4 py-2 text-sm rounded-lg border border-slate-300 bg-white text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-sky-600"
                 />
                 <svg class="w-4 h-4 absolute left-3.5 top-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -36,10 +36,10 @@
                 <select 
                     wire:model.live="paymentStatus"
                     class="px-3.5 py-2 text-xs font-semibold rounded-lg border border-slate-300 bg-white text-slate-800 focus:ring-2 focus:ring-sky-600">
-                    <option value="all">All Payment Status</option>
-                    <option value="PAID">PAID</option>
-                    <option value="PARTIAL">PARTIAL</option>
-                    <option value="DUE">DUE</option>
+                    <option value="all">{{ __('All Payment Status') }}</option>
+                    <option value="PAID">{{ __('PAID') }}</option>
+                    <option value="PARTIAL">{{ __('PARTIAL') }}</option>
+                    <option value="DUE">{{ __('DUE') }}</option>
                 </select>
             </div>
         </div>
@@ -48,14 +48,14 @@
             <table class="w-full text-left border-collapse text-sm">
                 <thead>
                     <tr class="border-b border-slate-200 text-xs font-semibold uppercase tracking-wider text-slate-600 bg-slate-50">
-                        <th class="px-5 py-3.5">Invoice No</th>
-                        <th class="px-5 py-3.5">Date</th>
-                        <th class="px-5 py-3.5">Customer</th>
-                        <th class="px-5 py-3.5">Total Amount</th>
-                        <th class="px-5 py-3.5">Paid</th>
-                        <th class="px-5 py-3.5">Due</th>
-                        <th class="px-5 py-3.5">Status</th>
-                        <th class="px-5 py-3.5">Cashier</th>
+                        <th class="px-5 py-3.5">{{ __('Invoice No') }}</th>
+                        <th class="px-5 py-3.5">{{ __('Date') }}</th>
+                        <th class="px-5 py-3.5">{{ __('Customer') }}</th>
+                        <th class="px-5 py-3.5">{{ __('Total Amount') }}</th>
+                        <th class="px-5 py-3.5">{{ __('Paid') }}</th>
+                        <th class="px-5 py-3.5">{{ __('Due') }}</th>
+                        <th class="px-5 py-3.5">{{ __('Status') }}</th>
+                        <th class="px-5 py-3.5">{{ __('Cashier') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-slate-800">
@@ -68,7 +68,7 @@
                                 {{ $sale->sale_date?->format('d/m/Y h:i A') ?? $sale->created_at->format('d/m/Y h:i A') }}
                             </td>
                             <td class="px-5 py-3.5">
-                                <span class="font-bold text-slate-900 block">{{ $sale->customer?->name ?? 'Walk-in Customer' }}</span>
+                                <span class="font-bold text-slate-900 block">{{ $sale->customer?->name ?? __('Walk-in Customer') }}</span>
                                 @if ($sale->customer?->phone)
                                     <span class="text-xs text-slate-400">{{ $sale->customer->phone }}</span>
                                 @endif
@@ -88,13 +88,13 @@
                                 </span>
                             </td>
                             <td class="px-5 py-3.5 text-xs text-slate-500">
-                                {{ $sale->user?->name ?? 'Cashier' }}
+                                {{ $sale->user?->name ?? __('Cashier') }}
                             </td>
                         </tr>
                     @empty
                         <tr>
                             <td colspan="8" class="px-5 py-8 text-center text-slate-400">
-                                No sales transactions found.
+                                {{ __('No sales transactions found.') }}
                             </td>
                         </tr>
                     @endforelse

@@ -1,9 +1,21 @@
-<div class="relative h-16 px-6 bg-white border-b border-slate-200 flex items-center justify-between shadow-2xs shrink-0 z-40">
-    {{-- Left: Live Pharmacy Status & POS Shortcut --}}
-    <div class="flex items-center space-x-4">
+<div class="relative h-16 px-4 sm:px-6 bg-white border-b border-slate-200 flex items-center justify-between shadow-2xs shrink-0 z-40">
+    {{-- Left: Sidebar Toggle & Live Pharmacy Status & POS Shortcut --}}
+    <div class="flex items-center space-x-3 sm:space-x-4">
+        {{-- Sidebar Toggle Button --}}
+        <button 
+            @click="$dispatch('toggle-sidebar')"
+            type="button" 
+            class="p-2 rounded-xl bg-slate-50 hover:bg-sky-50 text-slate-600 hover:text-sky-700 border border-slate-200 hover:border-sky-300 transition cursor-pointer shadow-2xs group flex items-center justify-center"
+            title="Toggle Sidebar (Expand / Collapse)"
+        >
+            <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+            </svg>
+        </button>
+
         <div class="flex items-center gap-2">
             <span class="w-2.5 h-2.5 rounded-full {{ $activeShift ? 'bg-emerald-500 animate-pulse' : 'bg-amber-400' }}"></span>
-            <span class="text-xs font-bold text-slate-800">
+            <span class="text-xs font-bold text-slate-800 hidden sm:inline">
                 {{ auth()->user()->branch?->name ?? 'Main Pharmacy' }}
             </span>
             <span class="text-[11px] px-2 py-0.5 rounded-full font-semibold {{ $activeShift ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200' }}">
@@ -21,8 +33,28 @@
         </a>
     </div>
 
-    {{-- Right: Notification Dropdown & User Profile Dropdown --}}
+    {{-- Right: Language Switcher, Notification Dropdown & User Profile Dropdown --}}
     <div class="flex items-center space-x-3" x-data="{ showNotifications: false, showUserMenu: false }">
+        
+        {{-- Language Toggle Switcher --}}
+        <div class="flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200 shadow-2xs">
+            <a 
+                href="{{ route('language.switch', 'en') }}" 
+                class="px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 {{ app()->getLocale() == 'en' ? 'bg-white text-sky-700 shadow-xs' : 'text-slate-500 hover:text-slate-800' }}"
+                title="Switch to English"
+            >
+                <span class="text-xs">🇬🇧</span>
+                <span>EN</span>
+            </a>
+            <a 
+                href="{{ route('language.switch', 'bn') }}" 
+                class="px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 {{ app()->getLocale() == 'bn' ? 'bg-white text-emerald-700 shadow-xs' : 'text-slate-500 hover:text-slate-800' }}"
+                title="বাংলায় পরিবর্তন করুন"
+            >
+                <span class="text-xs">🇧🇩</span>
+                <span>বাংলা</span>
+            </a>
+        </div>
         
         {{-- 1. Notification Dropdown --}}
         <div class="relative">
@@ -60,10 +92,10 @@
                 <div class="p-3.5 bg-slate-100 flex items-center justify-between border-b border-slate-200">
                     <div class="flex items-center gap-2">
                         <svg class="w-4 h-4 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                        <span class="font-bold text-slate-800 text-xs">নোটিফিকেশন ও সিস্টেম অ্যালার্ট</span>
+                        <span class="font-bold text-slate-800 text-xs">{{ __('Notifications & System Alerts') }}</span>
                     </div>
                     <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap {{ $totalAlerts > 0 ? 'bg-rose-100 text-rose-800 border border-rose-200' : 'bg-emerald-100 text-emerald-800 border border-emerald-200' }}">
-                        {{ $totalAlerts }} Alert(s)
+                        {{ $totalAlerts }} {{ __('Alert(s)') }}
                     </span>
                 </div>
 
@@ -73,8 +105,8 @@
                         <a href="{{ route('inventory.reorder-shortage') }}" wire:navigate class="p-3.5 hover:bg-slate-50 flex items-start gap-3 transition block group">
                             <span class="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 font-bold text-sm group-hover:scale-105 transition">⚠️</span>
                             <div>
-                                <div class="font-bold text-slate-900 group-hover:text-sky-700 transition">{{ $lowStockCount }}টি ওষুধের স্টক সংকট রয়েছে</div>
-                                <div class="text-[11px] text-slate-500 mt-0.5">মিনিমাম অ্যালার্টের নিচে। ১-ক্লিকে রিকুইজিশন তৈরি করুন।</div>
+                                <div class="font-bold text-slate-900 group-hover:text-sky-700 transition">{{ $lowStockCount }} {{ __('medicines are in low stock') }}</div>
+                                <div class="text-[11px] text-slate-500 mt-0.5">{{ __('Below minimum threshold. Click to create purchase demand.') }}</div>
                             </div>
                         </a>
                     @endif
@@ -84,8 +116,8 @@
                         <a href="{{ route('inventory.expiry-damage') }}" wire:navigate class="p-3.5 hover:bg-slate-50 flex items-start gap-3 transition block group">
                             <span class="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 font-bold text-sm group-hover:scale-105 transition">⏳</span>
                             <div>
-                                <div class="font-bold text-slate-900 group-hover:text-sky-700 transition">{{ $nearExpiryCount }}টি ব্যাচের মেয়াদ ৩০ দিনের মধ্যে শেষ হবে</div>
-                                <div class="text-[11px] text-slate-500 mt-0.5">সাপ্লায়ারে রিটার্ন ক্লেইম পাঠিয়ে ক্রেডিট অ্যাডজাস্ট করুন।</div>
+                                <div class="font-bold text-slate-900 group-hover:text-sky-700 transition">{{ $nearExpiryCount }} {{ __('batches expire within 30 days') }}</div>
+                                <div class="text-[11px] text-slate-500 mt-0.5">{{ __('Send supplier return claims to adjust credit balance.') }}</div>
                             </div>
                         </a>
                     @endif
@@ -95,8 +127,8 @@
                         <a href="{{ route('inventory.expiry-damage') }}" wire:navigate class="p-3.5 hover:bg-rose-50/50 flex items-start gap-3 transition block group">
                             <span class="w-8 h-8 rounded-lg bg-rose-100 text-rose-800 flex items-center justify-center shrink-0 font-bold text-sm group-hover:scale-105 transition">🚫</span>
                             <div>
-                                <div class="font-bold text-rose-700">{{ $expiredCount }}টি মেয়াদোত্তীর্ণ ব্যাচ স্টকে লক রয়েছে!</div>
-                                <div class="text-[11px] text-slate-500 mt-0.5">বিক্রি বন্ধ ও দ্রুত ড্যামেজ ডিসপোজাল আবশ্যক।</div>
+                                <div class="font-bold text-rose-700">{{ $expiredCount }} {{ __('expired batches locked in stock!') }}</div>
+                                <div class="text-[11px] text-slate-500 mt-0.5">{{ __('Sales blocked. Immediate disposal or damage claim required.') }}</div>
                             </div>
                         </a>
                     @endif
@@ -106,8 +138,8 @@
                         <a href="{{ route('accounts.cash-registers') }}" wire:navigate class="p-3.5 hover:bg-slate-50 flex items-start gap-3 transition block group">
                             <span class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0 font-bold text-sm group-hover:scale-105 transition">💼</span>
                             <div>
-                                <div class="font-bold text-slate-900 group-hover:text-sky-700 transition">ক্যাশ কাউন্টার শিফট বন্ধ রয়েছে</div>
-                                <div class="text-[11px] text-slate-500 mt-0.5">নতুন শিফট ও ওপেনিং ক্যাশ ফ্লট এন্ট্রি করুন।</div>
+                                <div class="font-bold text-slate-900 group-hover:text-sky-700 transition">{{ __('Cash register shift is closed') }}</div>
+                                <div class="text-[11px] text-slate-500 mt-0.5">{{ __('Open register shift and enter opening float balance.') }}</div>
                             </div>
                         </a>
                     @endif
@@ -115,15 +147,15 @@
                     @if($totalAlerts === 0)
                         <div class="p-8 text-center text-slate-400">
                             <div class="text-2xl mb-1.5">🎉</div>
-                            <div class="font-bold text-slate-700">সবকিছু ঠিকঠাক আছে!</div>
-                            <div class="text-[11px] text-slate-400 mt-0.5">বর্তমানে কোনো নতুন অ্যালার্ট বা জরুরি নোটিফিকেশন নেই।</div>
+                            <div class="font-bold text-slate-700">{{ __('Everything is running smoothly!') }}</div>
+                            <div class="text-[11px] text-slate-400 mt-0.5">{{ __('No active alerts or urgent system notifications.') }}</div>
                         </div>
                     @endif
                 </div>
 
                 <div class="p-2.5 bg-slate-50/80 text-center border-t border-slate-100">
                     <a href="{{ route('dashboard') }}" wire:navigate class="text-[11px] font-bold text-sky-700 hover:text-sky-900 flex items-center justify-center gap-1">
-                        <span>View Complete Dashboard Analytics</span>
+                        <span>{{ __('View Complete Dashboard Analytics') }}</span>
                         <span>&rarr;</span>
                     </a>
                 </div>
@@ -176,8 +208,8 @@
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                         </div>
                         <div>
-                            <div class="text-xs font-bold text-slate-800">প্রোফাইল ও পাসওয়ার্ড পরিবর্তন</div>
-                            <div class="text-[10px] text-slate-400 font-normal">নাম ও পাসওয়ার্ড পরিবর্তন করুন</div>
+                            <div class="text-xs font-bold text-slate-800">{{ __('Profile & Password') }}</div>
+                            <div class="text-[10px] text-slate-400 font-normal">{{ __('Change user name & security credentials') }}</div>
                         </div>
                     </button>
 
@@ -191,8 +223,8 @@
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path></svg>
                         </div>
                         <div>
-                            <div class="text-xs font-bold text-slate-800">সফটওয়্যার সেটিংস (Settings)</div>
-                            <div class="text-[10px] text-slate-400 font-normal">ফার্মেসি ও ইনভয়েস কনফিগারেশন</div>
+                            <div class="text-xs font-bold text-slate-800">{{ __('Software Settings') }}</div>
+                            <div class="text-[10px] text-slate-400 font-normal">{{ __('Pharmacy, invoice & tax configuration') }}</div>
                         </div>
                     </a>
                 </div>
@@ -204,7 +236,7 @@
                             <div class="w-7 h-7 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
                             </div>
-                            <span class="text-xs">লগআউট (Logout)</span>
+                            <span class="text-xs">{{ __('Logout') }}</span>
                         </button>
                     </form>
                 </div>
@@ -218,8 +250,8 @@
             <div class="bg-white w-full max-w-md rounded-lg shadow-2xl border border-slate-200 overflow-hidden">
                 <div class="bg-gradient-to-r from-sky-600 to-blue-700 px-6 py-4 text-white flex items-center justify-between">
                     <div>
-                        <h3 class="font-bold text-base">প্রোফাইল ও পাসওয়ার্ড পরিবর্তন</h3>
-                        <p class="text-xs text-sky-100">ব্যবহারকারীর নাম, ইমেইল এবং সিকিউরিটি পাসওয়ার্ড আপডেট করুন</p>
+                        <h3 class="font-bold text-base">{{ __('Profile & Password') }}</h3>
+                        <p class="text-xs text-sky-100">{{ __('Update user details, email and security password') }}</p>
                     </div>
                     <button wire:click="$set('showProfileModal', false)" class="text-white hover:text-sky-200 font-bold text-xl cursor-pointer">&times;</button>
                 </div>
@@ -237,43 +269,43 @@
                     @endif
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-800 mb-1">পূর্ণ নাম (User Name) <span class="text-rose-500">*</span></label>
+                        <label class="block text-xs font-bold text-slate-800 mb-1">{{ __('User Name') }} <span class="text-rose-500">*</span></label>
                         <input type="text" wire:model="name" class="w-full text-xs font-bold rounded-lg border border-slate-300 py-2 px-3" />
                         @error('name') <span class="text-rose-500 text-[11px] block mt-1">{{ $message }}</span> @enderror
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-800 mb-1">ইমেইল ঠিকানা (Email Address) <span class="text-rose-500">*</span></label>
+                        <label class="block text-xs font-bold text-slate-800 mb-1">{{ __('Email Address') }} <span class="text-rose-500">*</span></label>
                         <input type="email" wire:model="email" class="w-full text-xs font-mono rounded-lg border border-slate-300 py-2 px-3" />
                         @error('email') <span class="text-rose-500 text-[11px] block mt-1">{{ $message }}</span> @enderror
                     </div>
 
                     <div class="pt-3 border-t border-slate-100 space-y-3">
-                        <div class="text-xs font-bold text-slate-700">পাসওয়ার্ড পরিবর্তন (Password Change - Optional)</div>
+                        <div class="text-xs font-bold text-slate-700">{{ __('Password Change (Optional)') }}</div>
 
                         <div>
-                            <label class="block text-xs font-semibold text-slate-600 mb-1">বর্তমান পাসওয়ার্ড (Current Password)</label>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">{{ __('Current Password') }}</label>
                             <input type="password" wire:model="currentPassword" placeholder="••••••••" class="w-full text-xs rounded-lg border border-slate-300 py-2 px-3" />
                         </div>
 
                         <div>
-                            <label class="block text-xs font-semibold text-slate-600 mb-1">নতুন পাসওয়ার্ড (New Password)</label>
-                            <input type="password" wire:model="newPassword" placeholder="কমপক্ষে ৬ অক্ষর" class="w-full text-xs rounded-lg border border-slate-300 py-2 px-3" />
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">{{ __('New Password') }}</label>
+                            <input type="password" wire:model="newPassword" placeholder="{{ __('Minimum 6 characters') }}" class="w-full text-xs rounded-lg border border-slate-300 py-2 px-3" />
                             @error('newPassword') <span class="text-rose-500 text-[11px] block mt-1">{{ $message }}</span> @enderror
                         </div>
 
                         <div>
-                            <label class="block text-xs font-semibold text-slate-600 mb-1">নতুন পাসওয়ার্ড নিশ্চিত করুন (Confirm Password)</label>
-                            <input type="password" wire:model="newPassword_confirmation" placeholder="পুনরায় লিখুন" class="w-full text-xs rounded-lg border border-slate-300 py-2 px-3" />
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">{{ __('Confirm Password') }}</label>
+                            <input type="password" wire:model="newPassword_confirmation" placeholder="{{ __('Re-type new password') }}" class="w-full text-xs rounded-lg border border-slate-300 py-2 px-3" />
                         </div>
                     </div>
 
                     <div class="pt-3 border-t border-slate-100 flex items-center justify-end space-x-2">
                         <button type="button" wire:click="$set('showProfileModal', false)" class="px-4 py-2 bg-slate-200 text-slate-700 font-bold rounded-lg text-xs cursor-pointer">
-                            Close
+                            {{ __('Close') }}
                         </button>
                         <button type="submit" class="px-5 py-2 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-lg text-xs shadow-md transition cursor-pointer">
-                            Save Changes
+                            {{ __('Save Changes') }}
                         </button>
                     </div>
                 </form>
